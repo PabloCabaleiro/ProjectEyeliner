@@ -88,7 +88,7 @@ class ProccessClass(object):
                     plt.plot(previous_line)
                     plt.imshow(self.img)
                     plt.axvline(x=start_column)
-                if (row - top_distance > bottom_distance - row):
+                if (row - top_distance > bottom_distance - row) and bottom_distance > -1:
                     if showStartingPos:
                         plt.axhline(y=bottom_distance)
                         plt.show()
