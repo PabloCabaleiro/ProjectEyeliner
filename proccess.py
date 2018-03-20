@@ -136,6 +136,7 @@ class ProccessClass(object):
         top_lines = []
         bot_lines = []
         columns = []
+        no_line = False
 
         while c < N_CAPAS:
             line_a = [None] * width
@@ -148,7 +149,7 @@ class ProccessClass(object):
             if c == 0:
                 start_value, start_column = self._get_starting_pos(edge_img,rows[c],[],showStartingPos=False)
             else:
-                start_value, start_column = self._get_starting_pos(edge_img,rows[c],bot_lines[c-1],showStartingPos=False)
+                start_value, start_column = self._get_starting_pos(edge_img,rows[c],bot_lines[-1],showStartingPos=False)
 
             columns.append(start_column)
 
@@ -162,11 +163,14 @@ class ProccessClass(object):
                     if c == 0:
                         pos = self._get_nearest_edge(edge_img, i, line_a[i - 1], [])
                     else:
-                        pos = self._get_nearest_edge(edge_img, i, line_a[i - 1], bot_lines[c-1])
+                        pos = self._get_nearest_edge(edge_img, i, line_a[i - 1], bot_lines[-1])
 
                     # Procesar esta linea (agujeros...)
                     if pos == -1: #GAP
-                        pos = line_a[i-1]
+                        if c == 0:
+                            pos = line_a[i-1]
+                        else:
+                            pos = max(line_a[i-1], bot_lines[-1][i] + MIN_DIST_CAPAS)
                         if not in_gap:
                             in_gap = True
                             start_gap = i
@@ -177,6 +181,11 @@ class ProccessClass(object):
                     # Almacenamos la posición final
                     line_a[i] = pos
 
+                # Hay demasiado gap --> no es una línea real
+                if in_gap and c>0 and self.width-start_gap>self.width/2:
+                    c += 1
+                    continue
+
                 in_gap = False
 
                 # Búsqueda por la izquierda
@@ -186,11 +195,14 @@ class ProccessClass(object):
                     if c == 0:
                         pos = self._get_nearest_edge(edge_img, i, line_a[i + 1], [])
                     else:
-                        pos = self._get_nearest_edge(edge_img, i, line_a[i + 1], bot_lines[c-1])
+                        pos = self._get_nearest_edge(edge_img, i, line_a[i + 1], bot_lines[-1])
 
                     # Procesar esta linea (agujeros...)
                     if pos == -1:  # GAP
-                        pos = line_a[i + 1]
+                        if c == 0:
+                            pos = line_a[i + 1]
+                        else:
+                            pos = max(line_a[i + 1], bot_lines[-1][i] + MIN_DIST_CAPAS)
                         if not in_gap:
                             in_gap = True
                             start_gap = i
@@ -200,6 +212,10 @@ class ProccessClass(object):
 
                     # Almacenamos la posición final
                     line_a[i] = pos
+
+                if in_gap and c>0 and start_gap>self.width/2:
+                    c += 1
+                    continue
 
                 #Interpolamos los gaps
                 for start, end in gaps:
