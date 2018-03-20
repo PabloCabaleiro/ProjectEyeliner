@@ -3,6 +3,10 @@ __pycache__/
 *.py[cod]
 *$py.class
 
+#Imagenes y validaciones
+imgenestfm/
+validations/
+
 # C extensions
 *.so
 
@@ -21,6 +25,7 @@ parts/
 sdist/
 var/
 wheels/
+.idea/
 *.egg-info/
 .installed.cfg
 *.egg

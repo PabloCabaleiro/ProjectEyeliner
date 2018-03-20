@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 RETINA_TH = 20          # Diferencia de intensidad umbral para ser retina entre los vectores de SAMPLE_SIZE
 MIN_DIST_CAPAS = 20     # Distancia mínima entre capas
 N_CAPAS = 3             # Número de capas
-CAPA_TH = 5000          # Umbral de diferencia entre filas para ser la aproximación de una capa
+CAPA_TH = 4000          # Umbral de diferencia entre filas para ser la aproximación de una capa
 MAX_DIST_PIXELS_TOP = 20# Ventana de movimiento entre píxeles colindantes de un borde hacia arriba
 MAX_DIST_PIXELS_BOT = 20# Ventana de movimiento entre píxeles colindantes de un borde hacia abajo
 BORDER_SIZE = 10        # Tamaño aproximado del borde completo desde el límite superior al inferior\
