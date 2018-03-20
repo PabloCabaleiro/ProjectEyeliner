@@ -2,25 +2,27 @@ import cv2
 import numpy as np
 import matplotlib.pyplot as plt
 
-RETINA_TH = 20          # Diferencia de intensidad umbral para ser retina entre los vectores de SAMPLE_SIZE
-MIN_DIST_CAPAS = 20     # Distancia mínima entre capas
-N_CAPAS = 3             # Número de capas
+RETINA_TH = 27          # Diferencia de intensidad umbral para ser retina entre los vectores de SAMPLE_SIZE
+MIN_DIST_CAPAS = 30     # Distancia mínima entre capas
 CAPA_TH = 4000          # Umbral de diferencia entre filas para ser la aproximación de una capa
 MAX_DIST_PIXELS_TOP = 20# Ventana de movimiento entre píxeles colindantes de un borde hacia arriba
 MAX_DIST_PIXELS_BOT = 20# Ventana de movimiento entre píxeles colindantes de un borde hacia abajo
 BORDER_SIZE = 10        # Tamaño aproximado del borde completo desde el límite superior al inferior\
 SAMPLE_SIZE = 10        # Tamaño ventana para el estudio de las intensidades anteriores y posteriores a un borde
 DIST_MIN = 20
+N_CAPAS = 3
 
 class ProccessClass(object):
 
     img = None
     width = None
     height = None
+    min_dist_capas = None
 
     def __init__(self, img):
         self.img = img
         self.height, self.width, _ = np.shape(img)
+        self.min_dist_capas = int(0.1*self.height)
 
     def _get_nearest_edge(self, edge_image, column, start_position, previous_line):
 
@@ -70,14 +72,14 @@ class ProccessClass(object):
             bottom_distance = -1
             for j in range(row,row+DIST_MIN):
                 if edge_img[j,i] > 0:
-                    if not has_previous or j > previous_line[i] + MIN_DIST_CAPAS:
+                    if not has_previous or j > previous_line[i] + self.min_dist_capas:
                         bottom_distance = j
                         break
             #Distancia por debajo de la aproximación
             top_distance = -1
             for j in range(row, row-DIST_MIN,-1):
                 if edge_img[j,i] > 0:
-                    if not has_previous or j > previous_line[i] + MIN_DIST_CAPAS:
+                    if not has_previous or j > previous_line[i] + self.min_dist_capas:
                         top_distance = j
                         break
             #Si ha encontrado un valor nos quedamos con la columna
@@ -103,21 +105,29 @@ class ProccessClass(object):
     def _get_roi(self,edge_img, showRoi = False):
         # Localizamos lineas de interés
         rows = [sum(edge_img[row, :]) for row in range(0, self.height)]
-        diff = [rows[c + 1] - rows[c] for c in range(0, len(rows) - 1)]
+        diff = [rows[c] - rows[c-1] for c in range(1, len(rows))]
         roi = np.argwhere(np.array(diff) > CAPA_TH)
 
-        row1 = int(roi[0])
-        row2 = int(roi[roi > row1 + MIN_DIST_CAPAS][0])
-        row3 = int(roi[roi > row2 + MIN_DIST_CAPAS][0])
-
+        previous_result = -1
+        result = []
+        while 1:
+            if previous_result == -1:
+                previous_result = int(roi[0])
+                result.append(previous_result)
+            else:
+                try:
+                    previous_result = int(roi[roi > previous_result + self.min_dist_capas][0])
+                    result.append(previous_result)
+                except:
+                    break
         if showRoi:
             plt.figure()
-            for row in [row1, row2, row3]:
+            for row in result:
                 plt.axhline(y=row)
             plt.imshow(edge_img)
             plt.show()
 
-        return [row1, row2, row3]
+        return result
 
     def rotate_back(image, rotation_matrix, og_size):
         M = cv2.invertAffineTransform(rotation_matrix)
@@ -130,28 +140,25 @@ class ProccessClass(object):
 
         #Obtenemos lineas iniciales de aproximación
         rows = self._get_roi(edge_img,showRoi=False)
+        N_ROWS = len(rows)
 
         # Aproximamos las lineas de interés en las diferentes capas
-        c = 0
+        n_capas = 0
         top_lines = []
         bot_lines = []
-        columns = []
-        no_line = False
+        n_rows = 0
 
-        while c < N_CAPAS:
+        while n_capas < N_CAPAS and n_rows < N_ROWS:
             line_a = [None] * width
             line_b = []
             gaps = []
             in_gap = False
-            start_gap = -1
 
             # Encontramos una posición válida para el inicio
-            if c == 0:
-                start_value, start_column = self._get_starting_pos(edge_img,rows[c],[],showStartingPos=False)
+            if n_capas == 0:
+                start_value, start_column = self._get_starting_pos(edge_img,rows[n_rows],[],showStartingPos=False)
             else:
-                start_value, start_column = self._get_starting_pos(edge_img,rows[c],bot_lines[-1],showStartingPos=False)
-
-            columns.append(start_column)
+                start_value, start_column = self._get_starting_pos(edge_img,rows[n_rows],bot_lines[-1],showStartingPos=False)
 
             line_a[start_column]  = start_value
 
@@ -160,30 +167,31 @@ class ProccessClass(object):
                 for i in range(start_column+1, width):
 
                     # Primer borde a partir de la posición anterior
-                    if c == 0:
+                    if n_capas == 0:
                         pos = self._get_nearest_edge(edge_img, i, line_a[i - 1], [])
                     else:
                         pos = self._get_nearest_edge(edge_img, i, line_a[i - 1], bot_lines[-1])
 
                     # Procesar esta linea (agujeros...)
                     if pos == -1: #GAP
-                        if c == 0:
+                        if n_capas == 0:
                             pos = line_a[i-1]
                         else:
-                            pos = max(line_a[i-1], bot_lines[-1][i] + MIN_DIST_CAPAS)
+                            pos = max(line_a[i-1], bot_lines[-1][i] + self.min_dist_capas)
                         if not in_gap:
                             in_gap = True
-                            start_gap = i
+                            right_gap = i
                     elif in_gap:
-                        gaps.append((start_gap,i))
+                        gaps.append((right_gap,i))
                         in_gap = False
 
                     # Almacenamos la posición final
                     line_a[i] = pos
 
                 # Hay demasiado gap --> no es una línea real
-                if in_gap and c>0 and self.width-start_gap>self.width/2:
-                    c += 1
+                if in_gap  and self.width-right_gap>self.width/2:
+                    n_rows += 1
+                    print("Me salgo por la derecha!")
                     continue
 
                 in_gap = False
@@ -192,29 +200,30 @@ class ProccessClass(object):
                 for i in range(start_column-1, -1, -1):
 
                     # Primer borde a partir de la posición anterior
-                    if c == 0:
+                    if n_capas == 0:
                         pos = self._get_nearest_edge(edge_img, i, line_a[i + 1], [])
                     else:
                         pos = self._get_nearest_edge(edge_img, i, line_a[i + 1], bot_lines[-1])
 
                     # Procesar esta linea (agujeros...)
                     if pos == -1:  # GAP
-                        if c == 0:
+                        if n_capas == 0:
                             pos = line_a[i + 1]
                         else:
-                            pos = max(line_a[i + 1], bot_lines[-1][i] + MIN_DIST_CAPAS)
+                            pos = max(line_a[i + 1], bot_lines[-1][i] + self.min_dist_capas)
                         if not in_gap:
                             in_gap = True
-                            start_gap = i
+                            left_gap = i
                     elif in_gap:
-                        gaps.append((i, start_gap))
+                        gaps.append((i, left_gap))
                         in_gap = False
 
                     # Almacenamos la posición final
                     line_a[i] = pos
 
-                if in_gap and c>0 and start_gap>self.width/2:
-                    c += 1
+                if in_gap and left_gap>self.width/2:
+                    n_rows += 1
+                    print("Me salgo por la izquierda!")
                     continue
 
                 #Interpolamos los gaps
@@ -227,9 +236,10 @@ class ProccessClass(object):
 
                 # Comprobamos si es retina
                 diff = np.mean([int(np.sum(self.img[(int(line_a[k]) + 10):(int(line_a[k]) + 20), k])) - int(
-                    np.sum(self.img[(int(line_a[k]) - 10):int(line_a[k]), k])) for k in range(0, width)])
+                    np.sum(self.img[(int(line_a[k]) - 10):int(line_a[k]), k])) for k in range(left_gap, right_gap)])
 
-                if diff / mean > RETINA_TH:
+                if (diff / mean) > RETINA_TH or n_capas == N_CAPAS-1:
+                    print(diff/mean)
                     break
 
                 # Línea inferior a partir de la superior
@@ -241,9 +251,17 @@ class ProccessClass(object):
                 bot_lines.append(line_b)
 
             else:
-                break
+                print("start_column = -1!")
+                n_rows += 1
+                plt.figure("Devuelve -1")
+                plt.imshow(edge_img)
+                for row in rows:
+                    plt.axhline(y=row)
+                plt.show()
+                continue
 
-            c += 1
+            n_capas += 1
+            n_rows += 1
 
         plt.imshow(self.img)
         for line in top_lines:
@@ -252,9 +270,7 @@ class ProccessClass(object):
             plt.plot(line)
         #for row in rows:
         #    plt.axhline(y=row)
-        #for col in columns:
-        #    plt.axvline(x=col)
-        plt.title(str(c))
+        plt.title(str(n_capas))
         plt.show()
 
     def pipeline(self):
