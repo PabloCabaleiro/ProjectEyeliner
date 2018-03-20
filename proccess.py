@@ -3,7 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 RETINA_TH = 27          # Diferencia de intensidad umbral para ser retina entre los vectores de SAMPLE_SIZE
-MIN_DIST_CAPAS = 30     # Distancia mínima entre capas
+MIN_DIST_CAPAS = 20     # Distancia mínima entre capas
 CAPA_TH = 4000          # Umbral de diferencia entre filas para ser la aproximación de una capa
 MAX_DIST_PIXELS_TOP = 20# Ventana de movimiento entre píxeles colindantes de un borde hacia arriba
 MAX_DIST_PIXELS_BOT = 20# Ventana de movimiento entre píxeles colindantes de un borde hacia abajo
@@ -239,7 +239,6 @@ class ProccessClass(object):
                     np.sum(self.img[(int(line_a[k]) - 10):int(line_a[k]), k])) for k in range(left_gap, right_gap)])
 
                 if (diff / mean) > RETINA_TH or n_capas == N_CAPAS-1:
-                    print(diff/mean)
                     break
 
                 # Línea inferior a partir de la superior

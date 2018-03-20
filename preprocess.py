@@ -119,7 +119,7 @@ class PreproccessClass(object):
 
     def _pre_rotate(self, filter_image, nbins=12, showRotation=False):
 
-        blur_img = cv2.GaussianBlur(filter_image.copy(), ksize=(17, 17), sigmaX=50)
+        blur_img = cv2.GaussianBlur(filter_image.copy(), ksize=(17, 17), sigmaX=100)
 
         hog, bin_size = self._hog_casero(blur_img, nbins=nbins)
 
