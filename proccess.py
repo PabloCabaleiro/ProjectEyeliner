@@ -5,8 +5,8 @@ import matplotlib.pyplot as plt
 RETINA_TH = 27          # Diferencia de intensidad umbral para ser retina entre los vectores de SAMPLE_SIZE
 MIN_DIST_CAPAS = 20     # Distancia mínima entre capas
 CAPA_TH = 4000          # Umbral de diferencia entre filas para ser la aproximación de una capa
-MAX_DIST_PIXELS_TOP = 20# Ventana de movimiento entre píxeles colindantes de un borde hacia arriba
-MAX_DIST_PIXELS_BOT = 20# Ventana de movimiento entre píxeles colindantes de un borde hacia abajo
+MAX_DIST_PIXELS_TOP = 10# Ventana de movimiento entre píxeles colindantes de un borde hacia arriba
+MAX_DIST_PIXELS_BOT = 10# Ventana de movimiento entre píxeles colindantes de un borde hacia abajo
 BORDER_SIZE = 10        # Tamaño aproximado del borde completo desde el límite superior al inferior\
 SAMPLE_SIZE = 10        # Tamaño ventana para el estudio de las intensidades anteriores y posteriores a un borde
 DIST_MIN = 20
@@ -72,14 +72,14 @@ class ProccessClass(object):
             bottom_distance = -1
             for j in range(row,row+DIST_MIN):
                 if edge_img[j,i] > 0:
-                    if not has_previous or j > previous_line[i] + self.min_dist_capas:
+                    if not has_previous or j > previous_line[i]:
                         bottom_distance = j
                         break
             #Distancia por debajo de la aproximación
             top_distance = -1
             for j in range(row, row-DIST_MIN,-1):
                 if edge_img[j,i] > 0:
-                    if not has_previous or j > previous_line[i] + self.min_dist_capas:
+                    if not has_previous or j > previous_line[i]:
                         top_distance = j
                         break
             #Si ha encontrado un valor nos quedamos con la columna
@@ -177,7 +177,7 @@ class ProccessClass(object):
                         if n_capas == 0:
                             pos = line_a[i-1]
                         else:
-                            pos = max(line_a[i-1], bot_lines[-1][i] + self.min_dist_capas)
+                            pos = max(line_a[i-1], bot_lines[-1][i])
                         if not in_gap:
                             in_gap = True
                             right_gap = i
@@ -189,7 +189,7 @@ class ProccessClass(object):
                     line_a[i] = pos
 
                 # Hay demasiado gap --> no es una línea real
-                if in_gap  and self.width-right_gap>self.width/2:
+                if in_gap  and self.width-right_gap>self.width*0.8:
                     n_rows += 1
                     print("Me salgo por la derecha!")
                     continue
@@ -210,7 +210,7 @@ class ProccessClass(object):
                         if n_capas == 0:
                             pos = line_a[i + 1]
                         else:
-                            pos = max(line_a[i + 1], bot_lines[-1][i] + self.min_dist_capas)
+                            pos = max(line_a[i + 1], bot_lines[-1][i])
                         if not in_gap:
                             in_gap = True
                             left_gap = i
@@ -221,7 +221,7 @@ class ProccessClass(object):
                     # Almacenamos la posición final
                     line_a[i] = pos
 
-                if in_gap and left_gap>self.width/2:
+                if in_gap and left_gap>self.width*0.8:
                     n_rows += 1
                     print("Me salgo por la izquierda!")
                     continue
