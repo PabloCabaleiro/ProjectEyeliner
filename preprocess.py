@@ -141,7 +141,43 @@ class PreproccessClass(object):
 
         return rotated_img, rotation_matrix
 
+    def _pre_enhance_equalization(self,filter_img):
+
+        img_yuv = cv2.cvtColor(filter_img, cv2.COLOR_BGR2YUV)
+
+        # equalize the histogram of the Y channel
+        img_yuv[:, :, 0] = cv2.equalizeHist(img_yuv[:, :, 0])
+
+        # convert the YUV image back to RGB format
+        return cv2.cvtColor(img_yuv, cv2.COLOR_YUV2BGR)
+
+    def _pre_enhance_equalization_adaptative(self,filter_img):
+
+        img_yuv = cv2.cvtColor(filter_img, cv2.COLOR_BGR2YUV)
+
+        # equalize the histogram of the Y channel
+        clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8, 8))
+        img_yuv[:, :, 0] = clahe.apply(img_yuv[:, :, 0])
+
+        # convert the YUV image back to RGB format
+        return cv2.cvtColor(img_yuv, cv2.COLOR_YUV2BGR)
+
+    def _pre_enhance_top_hat(self,filter_img):
+
+        img_yuv = cv2.cvtColor(filter_img, cv2.COLOR_BGR2YUV)
+
+        # equalize the histogram of the Y channel
+        kernel = np.ones((15, 15), np.uint8)
+        img_yuv[:, :, 0] = cv2.morphologyEx(img_yuv[:, :, 0],  cv2.MORPH_TOPHAT, kernel)
+
+        # convert the YUV image back to RGB format
+        return cv2.cvtColor(img_yuv, cv2.COLOR_YUV2BGR)
+
+
+
     def pipeline(self):
         filter_img = self._remove_UI()
         rotate_img, rotation_matrix = self._pre_rotate(filter_img, nbins=30, showRotation=False)
-        return self._pre_median_bilateral(rotate_img, bilateral_values=(11, 150, 150), median_value=3), rotation_matrix
+        enhanced_image = self._pre_enhance_top_hat(rotate_img)
+        filter_img = self._pre_median_bilateral(enhanced_image, bilateral_values=(11, 150, 150), median_value=3)
+        return filter_img, rotation_matrix
