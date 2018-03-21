@@ -239,6 +239,7 @@ class ProccessClass(object):
                     np.sum(self.img[(int(line_a[k]) - 10):int(line_a[k]), k])) for k in range(left_gap, right_gap)])
 
                 if (diff / mean) > RETINA_TH or n_capas == N_CAPAS-1:
+                    n_capas += 1
                     break
 
                 # Línea inferior a partir de la superior
@@ -262,15 +263,18 @@ class ProccessClass(object):
             n_capas += 1
             n_rows += 1
 
-        plt.imshow(self.img)
-        for line in top_lines:
-            plt.plot(line)
-        for line in bot_lines:
-            plt.plot(line)
-        #for row in rows:
-        #    plt.axhline(y=row)
-        plt.title(str(n_capas))
-        plt.show()
+        if showImgs:
+            plt.imshow(self.img)
+            for line in top_lines:
+                plt.plot(line)
+            for line in bot_lines:
+                plt.plot(line)
+            #for row in rows:
+            #    plt.axhline(y=row)
+            plt.title(str(n_capas))
+            plt.show()
+
+        return top_lines[-1], bot_lines[-1], n_capas
 
     def pipeline(self):
 
