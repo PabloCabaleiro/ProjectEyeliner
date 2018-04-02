@@ -18,11 +18,13 @@ class ProccessClass(object):
     width = None
     height = None
     min_dist_capas = None
+    mask = None
 
     def __init__(self, img):
         self.img = img
         self.height, self.width, _ = np.shape(img)
         self.min_dist_capas = int(0.1*self.height)
+        self.mask = self._pre_get_masks()
 
     def _get_nearest_edge(self, edge_image, column, start_position, previous_line):
 
@@ -149,7 +151,7 @@ class ProccessClass(object):
         n_rows = 0
 
         while n_capas < N_CAPAS and n_rows < N_ROWS:
-            line_a = [None] * width
+            line_a = [-1] * width
             line_b = []
             gaps = []
             in_gap = False
@@ -161,6 +163,9 @@ class ProccessClass(object):
                 start_value, start_column = self._get_starting_pos(edge_img,rows[n_rows],bot_lines[-1],showStartingPos=False)
 
             line_a[start_column]  = start_value
+
+            right_end = -1
+            left_end = -1
 
             if start_column != -1:
                 # Búsqueda por la derecha
@@ -174,6 +179,9 @@ class ProccessClass(object):
 
                     # Procesar esta linea (agujeros...)
                     if pos == -1: #GAP
+                        if self.mask[pos,i] == 0:
+                            right_end = i
+                            break
                         if n_capas == 0:
                             pos = line_a[i-1]
                         else:
@@ -207,6 +215,9 @@ class ProccessClass(object):
 
                     # Procesar esta linea (agujeros...)
                     if pos == -1:  # GAP
+                        if self.mask[pos,i] == 0:
+                            left_end = i
+                            break
                         if n_capas == 0:
                             pos = line_a[i + 1]
                         else:
@@ -236,7 +247,7 @@ class ProccessClass(object):
 
                 # Comprobamos si es retina
                 diff = np.mean([int(np.sum(self.img[(int(line_a[k]) + 10):(int(line_a[k]) + 20), k])) - int(
-                    np.sum(self.img[(int(line_a[k]) - 10):int(line_a[k]), k])) for k in range(left_gap, right_gap)])
+                    np.sum(self.img[(int(line_a[k]) - 10):int(line_a[k]), k])) for k in range(left_end, right_end)])
 
                 if (diff / mean) > RETINA_TH or n_capas == N_CAPAS-1:
                     n_capas += 1
@@ -278,7 +289,6 @@ class ProccessClass(object):
 
     def pipeline(self):
 
-        mask = self._pre_get_masks()
         edge_img = self._get_edges(np.ones((5, 5), np.uint8), canny_values=(50, 80), showEdges=False)
-        edge_img = cv2.bitwise_or(edge_img, edge_img, mask=mask)
+        edge_img = cv2.bitwise_or(edge_img, edge_img, mask=self.mask)
         return self._localization(edge_img, showImgs=True)
