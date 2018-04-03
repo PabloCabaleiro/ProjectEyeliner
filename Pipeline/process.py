@@ -258,7 +258,6 @@ class ProcessClass(object):
                            range(int(top_line[i]), int(top_line[i]) + 30)]
                     bot_line.append(int(np.argmax(np.array(aux[5:]) < 0) + top_line[i] + 5))
 
-                print(len(bot_line))
                 layer.set_bot_line(bot_line[left_end+1:right_end])
                 seg.add_layer(layer)
 

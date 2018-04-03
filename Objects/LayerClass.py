@@ -41,10 +41,8 @@ class LayerClass(object):
                 self.top_line[k - self._start_line] = (self.top_line[k - self._start_line][0],round(self.top_line[k - 1 - self._start_line][1] + step))
 
     def set_bot_line(self, bot_line):
-        print(len(bot_line))
         for i in range(len(bot_line)):
             self.bot_line.append((i + self._start_line,bot_line[i]))
-        print(len(self.bot_line))
 
     def set_gaps(self,gaps):
         self._gaps = gaps
