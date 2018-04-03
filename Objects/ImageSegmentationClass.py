@@ -30,7 +30,8 @@ class ImageSegmentationClass(object):
         for layer in self.layers:
             top = list(zip(*layer.top_line))
             plt.plot(top[0],top[1])
-            bot = list(zip(*layer.bot_line))
-            plt.plot(bot[0],bot[1])
+            if not layer.is_retina:
+                bot = list(zip(*layer.bot_line))
+                plt.plot(bot[0],bot[1])
         plt.imshow(image)
         plt.show()

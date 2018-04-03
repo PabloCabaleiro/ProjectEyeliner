@@ -1,5 +1,3 @@
-
-
 class LayerClass(object):
 
     top_line = None

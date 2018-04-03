@@ -247,9 +247,12 @@ class ProcessClass(object):
                 diff = np.mean([int(np.sum(self.img[(int(top_line[k]) + 10):(int(top_line[k]) + 20), k])) - int(
                     np.sum(self.img[(int(top_line[k]) - 10):int(top_line[k]), k])) for k in range(left_end+1, right_end)])
 
+                print(diff / mean)
+
                 if (diff / mean) > RETINA_TH or n_capas == N_CAPAS-1:
                     n_capas += 1
                     layer.is_retina = True
+                    seg.add_layer(layer)
                     break
 
                 # Línea inferior a partir de la superior
