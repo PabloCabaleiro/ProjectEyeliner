@@ -2,10 +2,11 @@ import matplotlib.pyplot as plt
 
 class ImageSegmentationClass(object):
 
-    layers = []
-    rotation_matrix = None
-    name = None
+    layers = None
     _complete = False
+
+    def __init__(self):
+        self.layers = []
 
     def add_layer(self, layer):
         self.layers.append(layer)

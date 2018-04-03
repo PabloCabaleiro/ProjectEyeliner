@@ -151,8 +151,6 @@ class ProcessClass(object):
 
         # Aproximamos las lineas de interés en las diferentes capas
         n_capas = 0
-        top_lines = []
-        bot_lines = []
         n_rows = 0
 
         seg = ImageSegmentationClass()
@@ -163,7 +161,7 @@ class ProcessClass(object):
             left_end  = 0
             right_end = self.width
 
-            top_line = [None] * width
+            top_line = [-1] * width
             bot_line = []
             gaps = []
             in_gap = False
@@ -184,12 +182,13 @@ class ProcessClass(object):
 
                     # En caso de gap
                     if pos == -1:
-                        # Si estamos en gap y fuera de la imagen
-                        if self.mask[pos,i] == 0:
-                            right_end = i
-                            break
                         # Mantenemos la misma posición que el punto interior pero evitando cruzar capa anterior
                         pos = max(top_line[i-1], seg.get_last_bot_line(i))
+                        # Si estamos en gap y fuera de la imagen
+                        if self.mask[pos,i] == 0:
+                            if sum(self.mask[pos,i:i+10]) == 0:
+                                right_end = i
+                                break
                         # Inicializamos variables de control del gap
                         if not in_gap:
                             in_gap = True
@@ -217,12 +216,13 @@ class ProcessClass(object):
 
                     # En caso de gap
                     if pos == -1:  # GAP
-                        # Si estamos en gap y fuera de la imagen
-                        if self.mask[pos,i] == 0:
-                            left_end = i
-                            break
                         # Mantenemos la misma posición que el punto interior pero evitando cruzar capa anterior
                         pos = max(top_line[i + 1], seg.get_last_bot_line(i))
+                        # Si estamos en gap y fuera de la imagen
+                        if self.mask[pos,i] == 0:
+                            if sum(self.mask[pos,i-10:i]) == 0:
+                                left_end = i
+                                break
                         # Inicializamos variables de control del gap
                         if not in_gap:
                             in_gap = True
@@ -239,7 +239,7 @@ class ProcessClass(object):
                     print("Me salgo por la izquierda!")
                     continue
 
-                layer.set_top_line(top_line[left_end:right_end], left_end, right_end)
+                layer.set_top_line(top_line[left_end+1:right_end], left_end+1, right_end)
                 layer.set_gaps(gaps)
                 layer.interpolate_gaps()
 
@@ -253,12 +253,13 @@ class ProcessClass(object):
                     break
 
                 # Línea inferior a partir de la superior
-                for i in range(left_end+1, right_end):
+                for i in range(0, self.width):
                     aux = [int(edge_img[j, i]) - int(edge_img[j - 1, i]) for j in
                            range(int(top_line[i]), int(top_line[i]) + 30)]
                     bot_line.append(int(np.argmax(np.array(aux[5:]) < 0) + top_line[i] + 5))
 
-                layer.set_bot_line(bot_line)
+                print(len(bot_line))
+                layer.set_bot_line(bot_line[left_end+1:right_end])
                 seg.add_layer(layer)
 
             else:
