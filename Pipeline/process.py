@@ -4,7 +4,7 @@ import numpy as np
 from Objects.ImageSegmentationClass import ImageSegmentationClass
 from Objects.LayerClass import LayerClass
 
-RETINA_TH = 27          # Diferencia de intensidad umbral para ser retina entre los vectores de SAMPLE_SIZE
+RETINA_TH = 20          # Diferencia de intensidad umbral para ser retina entre los vectores de SAMPLE_SIZE
 MIN_DIST_CAPAS = 20     # Distancia mínima entre capas
 CAPA_TH = 4000          # Umbral de diferencia entre filas para ser la aproximación de una capa
 MAX_DIST_PIXELS_TOP = 10# Ventana de movimiento entre píxeles colindantes de un borde hacia arriba
@@ -287,7 +287,7 @@ class ProcessClass(object):
 
         edge_img = self._get_edges(np.ones((5, 5), np.uint8), canny_values=(50, 80), showEdges=False)
         edge_img = cv2.bitwise_or(edge_img, edge_img, mask=self.mask)
-        segmentation = self._localization(edge_img, showImgs=True)
-        #top_lines, bot_lines = self._rotate_back(top_lines,bot_lines,self.rotation_matrix)
-
-        #return top_lines, bot_lines, n_capas
+        segmentation = self._localization(edge_img, showImgs=False)
+        top_line, bot_line, n_capas = segmentation.get_result()
+        top_line, bot_line = self._rotate_back(top_line,bot_line,self.rotation_matrix)
+        return top_line, bot_line, n_capas
