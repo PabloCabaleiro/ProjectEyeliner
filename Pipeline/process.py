@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from Objects.ImageSegmentationClass import ImageSegmentationClass
 from Objects.LayerClass import LayerClass
+from Objects.ResultClass import ResultClass
 
 RETINA_TH = 20          # Diferencia de intensidad umbral para ser retina entre los vectores de SAMPLE_SIZE
 MIN_DIST_CAPAS = 20     # Distancia mínima entre capas
@@ -290,4 +291,5 @@ class ProcessClass(object):
         segmentation = self._localization(edge_img, showImgs=False)
         top_line, bot_line, n_capas = segmentation.get_result()
         top_line, bot_line = self._rotate_back(top_line,bot_line,self.rotation_matrix)
-        return top_line, bot_line, n_capas
+        result = ResultClass(top_line,bot_line,n_capas)
+        return result
