@@ -4,7 +4,7 @@ from Pipeline.process import ProccesClass
 from Pipeline.preprocess import PreproccessClass
 from Utils.utils import _read_images
 
-VAL_PATH = "validation\\"
+VAL_PATH = "validation-data\\"
 
 class ValidateClass(object):
 
@@ -133,7 +133,7 @@ class ValidateClass(object):
         for i in range(0, len(image_list)):
             top_line, bot_line, no_lens = self._load_validation(names_list[i])
             rotated_img, rotation_matrix = PreproccessClass(image_list[i]).pipeline()
-            predicted_top_line, predicted_bot_line, n_capas = ProccessClass(rotated_img).pipeline()
+            predicted_top_line, predicted_bot_line, n_capas = ProccesClass(rotated_img).pipeline()
 
             if no_lens and n_capas < 3:
                 tp +=1

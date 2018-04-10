@@ -1,3 +1,5 @@
+import matplotlib.pyplot as plt
+
 class ResultClass(object):
 
     lens = None
@@ -32,5 +34,14 @@ class ResultClass(object):
         self.cornea = cornea_line
         self.cornea_start_line = cornea_line[0][0]
         self.cornea_end_line = cornea_line[-1][0]
+
+    def show(self, image):
+        plt.figure("Result")
+        top = list(zip(*self.lens))
+        plt.plot(top[0],top[1])
+        bot = list(zip(*self.cornea))
+        plt.plot(bot[0],bot[1])
+        plt.imshow(image)
+        plt.show()
 
 

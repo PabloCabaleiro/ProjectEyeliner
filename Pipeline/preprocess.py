@@ -15,9 +15,10 @@ SMALL_TYPE = "small"
 class PreproccessClass(object):
 
     img = None
+    parameters = None
 
-    def __init__(self, img):
-        self.img = img
+    def __init__(self, parameters):
+        self.parameters = parameters
 
     def _rotate_bound(self, filter_image, angle):
         # grab the dimensions of the image and then determine the
@@ -175,9 +176,18 @@ class PreproccessClass(object):
 
 
 
-    def pipeline(self):
+    def pipeline(self, img):
+        self.img = img
+
         filter_img = self._remove_UI()
-        rotate_img, rotation_matrix = self._pre_rotate(filter_img, nbins=30, showRotation=False)
-        enhanced_image = self._pre_enhance_top_hat(rotate_img)
-        filter_img = self._pre_median_bilateral(enhanced_image, bilateral_values=(11, 150, 150), median_value=3)
+        rotate_img, rotation_matrix = self._pre_rotate(filter_img, nbins=self.parameters.n_bins, showRotation=False)
+
+        if self.parameters.enhance_function == "top_hat":
+            enhanced_image = self._pre_enhance_top_hat(rotate_img)
+        elif self.parameters.enhance_function == "equalization":
+            enhanced_image = self._pre_enhance_equalization(rotate_img)
+        else:
+            enhanced_image = self._pre_enhance_equalization_adaptative(rotate_img)
+
+        filter_img = self._pre_median_bilateral(enhanced_image, bilateral_values=(self.parameters.bilateral_diameter, self.parameters.sigma_color, self.parameters.sigma_space), median_value=self.parameters.median_value)
         return filter_img, rotation_matrix

@@ -5,7 +5,7 @@ __pycache__/
 
 #Imagenes y validaciones
 imgenestfm/
-validation/
+validation-data/
 
 # C extensions
 *.so

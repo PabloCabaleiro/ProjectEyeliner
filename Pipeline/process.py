@@ -5,11 +5,8 @@ from Objects.ImageSegmentationClass import ImageSegmentationClass
 from Objects.LayerClass import LayerClass
 from Objects.ResultClass import ResultClass
 
-RETINA_TH = 20          # Diferencia de intensidad umbral para ser retina entre los vectores de SAMPLE_SIZE
 MIN_DIST_CAPAS = 20     # Distancia mínima entre capas
 CAPA_TH = 4000          # Umbral de diferencia entre filas para ser la aproximación de una capa
-MAX_DIST_PIXELS_TOP = 10# Ventana de movimiento entre píxeles colindantes de un borde hacia arriba
-MAX_DIST_PIXELS_BOT = 10# Ventana de movimiento entre píxeles colindantes de un borde hacia abajo
 BORDER_SIZE = 10        # Tamaño aproximado del borde completo desde el límite superior al inferior\
 SAMPLE_SIZE = 10        # Tamaño ventana para el estudio de las intensidades anteriores y posteriores a un borde
 DIST_MIN = 20
@@ -23,17 +20,17 @@ class ProccesClass(object):
     min_dist_capas = None
     rotation_matrix = None
     mask = None
+    retina_th = None
+    max_dist_top = None
+    max_dist_bot = None
+    parameters = None
 
-    def __init__(self, img, rotate_matrix):
-        self.img = img
-        self.height, self.width, _ = np.shape(img)
-        self.min_dist_capas = int(0.1*self.height)
-        self.rotation_matrix = rotate_matrix
-        self.mask = self._pre_get_masks()
+    def __init__(self, parameters):
+        self.parameters = parameters
 
     def _get_nearest_edge(self, edge_image, column, start_position, previous_line):
 
-        for j in range(max(start_position-MAX_DIST_PIXELS_TOP,previous_line),start_position+MAX_DIST_PIXELS_BOT):
+        for j in range(max(start_position-self.parameters.max_dist_top,previous_line),start_position+self.parameters.max_dist_bot):
             if edge_image[j, column] > 0:
                 return j
         return -1
@@ -250,7 +247,7 @@ class ProccesClass(object):
 
                 print(diff / mean)
 
-                if (diff / mean) > RETINA_TH or n_capas == N_CAPAS-1:
+                if (diff / mean) > self.parameters.retina_th or n_capas == N_CAPAS-1:
                     n_capas += 1
                     layer.is_retina = True
                     seg.add_layer(layer)
@@ -284,7 +281,12 @@ class ProccesClass(object):
 
         return seg
 
-    def pipeline(self):
+    def pipeline(self, img, rotate_matrix):
+        self.img = img
+        self.height, self.width, _ = np.shape(img)
+        self.min_dist_capas = int(0.1*self.height)
+        self.rotation_matrix = rotate_matrix
+        self.mask = self._pre_get_masks()
 
         edge_img = self._get_edges(np.ones((5, 5), np.uint8), canny_values=(50, 80), showEdges=False)
         edge_img = cv2.bitwise_or(edge_img, edge_img, mask=self.mask)
