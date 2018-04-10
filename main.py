@@ -1,4 +1,4 @@
-from Pipeline.process import ProcessClass
+from Pipeline.process import ProccesClass
 from Pipeline.preprocess import PreproccessClass
 from Utils.utils import _read_images
 import matplotlib.pyplot as plt
@@ -10,7 +10,7 @@ def main():
     for i in range(0, len(image_list)):
         print(names_list[i])
         rotated_img, rotation_matrix = PreproccessClass(image_list[i]).pipeline()
-        result = ProcessClass(rotated_img, rotation_matrix).pipeline()
+        result = ProccesClass(rotated_img, rotation_matrix).pipeline()
         plt.figure()
         plt.imshow(image_list[i])
         top = list(zip(*result.lens))

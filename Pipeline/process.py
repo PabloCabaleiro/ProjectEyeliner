@@ -15,7 +15,7 @@ SAMPLE_SIZE = 10        # Tamaño ventana para el estudio de las intensidades an
 DIST_MIN = 20
 N_CAPAS = 3
 
-class ProcessClass(object):
+class ProccesClass(object):
 
     img = None
     width = None
