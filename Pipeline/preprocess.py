@@ -190,4 +190,4 @@ class PreproccessClass(object):
             enhanced_image = self._pre_enhance_equalization_adaptative(rotate_img)
 
         filter_img = self._pre_median_bilateral(enhanced_image, bilateral_values=(self.parameters.bilateral_diameter, self.parameters.sigma_color, self.parameters.sigma_space), median_value=self.parameters.median_value)
-        return filter_img, rotation_matrix
+        return filter_img, enhanced_image, rotation_matrix

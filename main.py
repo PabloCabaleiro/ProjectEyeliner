@@ -14,8 +14,8 @@ def main():
 
     for i in range(0, len(image_list)):
         print(names_list[i])
-        rotated_img, rotation_matrix = preprocces.pipeline(image_list[i])
-        result = procces.pipeline(rotated_img, rotation_matrix)
+        rotated_img, enhanded_image, rotation_matrix = preprocces.pipeline(image_list[i])
+        result = procces.pipeline(rotated_img, enhanded_image, rotation_matrix)
         result.show(image_list[i])
 
 

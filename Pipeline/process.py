@@ -14,7 +14,8 @@ N_CAPAS = 3
 
 class ProccesClass(object):
 
-    img = None
+    filter_img = None
+    enhanced_img = None
     width = None
     height = None
     min_dist_capas = None
@@ -36,7 +37,7 @@ class ProccesClass(object):
         return -1
 
     def _pre_get_masks(self):
-        filter_img = cv2.GaussianBlur(self.img, (3, 3), 0)
+        filter_img = cv2.GaussianBlur(self.filter_img, (3, 3), 0)
         _, mask = cv2.threshold(filter_img, 5, 255, cv2.THRESH_BINARY)
         mask = cv2.cvtColor(mask, cv2.COLOR_BGR2GRAY)
         kernel = np.ones((9, 9), np.uint8)
@@ -47,7 +48,7 @@ class ProccesClass(object):
 
     def _get_edges(self, kernel, canny_values, showEdges=False):
 
-        edge_img = cv2.Canny(self.img, canny_values[0], canny_values[1])
+        edge_img = cv2.Canny(self.filter_img, canny_values[0], canny_values[1])
         edge_img = cv2.morphologyEx(edge_img, cv2.MORPH_CLOSE, kernel)
 
         if showEdges:
@@ -85,7 +86,7 @@ class ProccesClass(object):
                 if showStartingPos:
                     plt.figure()
                     plt.plot(previous_line)
-                    plt.imshow(self.img)
+                    plt.imshow(self.filter_img)
                     plt.axvline(x=start_column)
                 if (row - top_distance > bottom_distance - row) and bottom_distance > -1:
                     if showStartingPos:
@@ -141,7 +142,7 @@ class ProccesClass(object):
     def _localization(self, edge_img, showImgs=False):
 
         height, width = np.shape(edge_img)
-        mean = np.mean(self.img)
+        mean = np.mean(self.filter_img)
 
         #Obtenemos lineas iniciales de aproximación
         rows = self._get_roi(edge_img,showRoi=False)
@@ -242,8 +243,8 @@ class ProccesClass(object):
                 layer.interpolate_gaps()
 
                 # Comprobamos si es retina
-                diff = np.mean([int(np.sum(self.img[(int(top_line[k]) + 10):(int(top_line[k]) + 20), k])) - int(
-                    np.sum(self.img[(int(top_line[k]) - 10):int(top_line[k]), k])) for k in range(left_end+1, right_end)])
+                diff = np.mean([int(np.sum(self.enhanced_img[(int(top_line[k]) + 10):(int(top_line[k]) + 20), k])) - int(
+                    np.sum(self.enhanced_img[(int(top_line[k]) - 10):int(top_line[k]), k])) for k in range(left_end + 1, right_end)])
 
                 print(diff / mean)
 
@@ -276,17 +277,18 @@ class ProccesClass(object):
             n_rows += 1
 
         if showImgs:
-            seg.show(self.img
+            seg.show(self.filter_img
                      )
 
         return seg
 
-    def pipeline(self, img, rotate_matrix):
-        self.img = img
-        self.height, self.width, _ = np.shape(img)
+    def pipeline(self, filter_img, enhanced_img, rotate_matrix):
+        self.filter_img = filter_img
+        self.height, self.width, _ = np.shape(filter_img)
         self.min_dist_capas = int(0.1*self.height)
         self.rotation_matrix = rotate_matrix
         self.mask = self._pre_get_masks()
+        self.enhanced_img = enhanced_img
 
         edge_img = self._get_edges(np.ones((5, 5), np.uint8), canny_values=(50, 80), showEdges=False)
         edge_img = cv2.bitwise_or(edge_img, edge_img, mask=self.mask)
