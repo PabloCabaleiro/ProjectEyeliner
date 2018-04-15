@@ -1,6 +1,7 @@
 from Pipeline.process import ProccesClass
 from Pipeline.preprocess import PreproccessClass
 from Utils.utils import _read_images
+from Validation.validate_data import ValidateData
 
 class ValidateResults(object):
 
