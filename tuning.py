@@ -2,6 +2,7 @@ from Pipeline.process import ProccesClass
 from Pipeline.preprocess import PreproccessClass
 from Utils.utils import _read_images
 from Utils.parameter_manager import ParameterManagerClass
+from Validation.validate_results import ValidateResults
 
 ##############################################PROCCES CLASS#############################################################
 RETINA_TH_DEFAULT = [23,24,25,26,27,28]         # Diferencia de intensidad umbral para ser retina entre los vectores de SAMPLE_SIZE
@@ -45,7 +46,7 @@ def main():
             print(names_list[i])
             rotated_img, enhanced_image, rotation_matrix = preprocces.pipeline(image_list[i])
             result = procces.pipeline(rotated_img, enhanced_image, rotation_matrix)
-            result.show(image_list[i])
+            eval = ValidateResults(names_list[i]).validate(result)
 
 
 if __name__ == '__main__':
