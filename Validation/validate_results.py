@@ -1,32 +1,33 @@
-from Pipeline.process import ProccesClass
-from Pipeline.preprocess import PreproccessClass
-from Utils.utils import _read_images
 from Validation.validate_data import ValidateData
 
 class ValidateResults(object):
 
-    def validate(self):
+    eval_lens = None
+    eval_cornea = None
+    has_lens = None
 
-        image_list, names_list = _read_images()
-        tp = tn = fp = fn = mse = mae = n = 0
+    def __init__(self, name):
+        top, bot, has_lens = ValidateData._load_validation(name)
+        self.eval_lens = top
+        self.eval_cornea = bot
+        self.has_lens = has_lens
 
-        for i in range(0, len(image_list)):
-            top_line, bot_line, no_lens = self._load_validation(names_list[i])
-            rotated_img, rotation_matrix = PreproccessClass(image_list[i]).pipeline()
-            predicted_top_line, predicted_bot_line, n_capas = ProccesClass(rotated_img).pipeline()
+    def validate(self, result):
 
-            if no_lens and n_capas < 3:
-                tp +=1
-            elif no_lens and n_capas == 3:
-                fn +=1
-            elif not no_lens and n_capas < 3:
-                fp += 1
-            elif not no_lens:
-                tn += 1
-                mse_img, mae_img, n_img = self._get_error(predicted_top_line,predicted_bot_line,top_line,bot_line)
-                mse += mse_img
-                mae += mae_img
-                n += n_img
+        tp = fn = fp = tn = mse = mae = n = 0
+
+        if self.has_lens and result.n_capas < 3:
+            tp +=1
+        elif self.no_lens and result.n_capas == 3:
+            fn +=1
+        elif not self.no_lens and result.n_capas < 3:
+            fp += 1
+        elif not self.no_lens:
+            tn += 1
+            mse_img, mae_img, n_img = self._get_error(result.lens,result.cornea,self.eval_lens,self.eval_cornea)
+            mse += mse_img
+            mae += mae_img
+            n += n_img
 
         mse = mse/n
         acc, tpr, tnr, ppv, npv = self._get_metrics(tp,tn,fp,fn)
