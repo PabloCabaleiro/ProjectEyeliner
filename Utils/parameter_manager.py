@@ -1,3 +1,4 @@
+from hashlib import blake2b
 
 ##############################################PROCCES CLASS#############################################################
 RETINA_TH_DEFAULT = 20          # Diferencia de intensidad umbral para ser retina entre los vectores de SAMPLE_SIZE
@@ -16,6 +17,7 @@ ENHANCE_FUNCTION_DEFAULT = "top_hat" # Enhance function
 
 class ParameterManagerClass(object):
 
+    id = None
     retina_th = RETINA_TH_DEFAULT
     max_dist_top = MAX_DIST_PIXELS_TOP_DEFAULT
     max_dist_bot = MAX_DIST_PIXELS_BOT_DEFAULT
@@ -28,7 +30,8 @@ class ParameterManagerClass(object):
 
 
     def __init__(self, retina_th = None, max_dist_top = None, max_dist_bot = None, median_value = None, sigma_color = None,
-                 sigma_space = None, bilateral_diameter = None, n_bins = None, enhance_kernel = None):
+                 sigma_space = None, bilateral_diameter = None, n_bins = None, enhance_function = None):
+
         if retina_th:
             self.retina_th = retina_th
         if max_dist_top:
@@ -45,5 +48,25 @@ class ParameterManagerClass(object):
             self.bilateral_diameter = bilateral_diameter
         if n_bins:
             self.n_bins = n_bins
-        if enhance_kernel:
-            self.enhance_kernel = enhance_kernel
+        if enhance_function:
+            self.enhance_function = enhance_function
+
+
+        h = blake2b(digest_size=20)
+        config_id = str(self.get_config()).encode('utf-8')
+        h.update(config_id)
+        self.id = h.hexdigest()
+
+
+    def get_config(self):
+        return {
+            "RETINA_TH": self.retina_th,
+            "MAX_DIST_TOP": self.max_dist_top,
+            "MAX_DIST_BOT": self.max_dist_bot,
+            "MEDIAN_VALUE": self.median_value,
+            "SIGMA_COLOR": self.sigma_color,
+            "SIGMA_SPACE": self.sigma_space,
+            "BILATERAL_DIAMETER": self.bilateral_diameter,
+            "N_BINS": self.n_bins,
+            "ENHANCE_KERNEL": self.enhance_function
+        }

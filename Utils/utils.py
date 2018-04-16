@@ -14,7 +14,7 @@ def _read_images():
 
     return image_list, names_list
 
-def load_validation(self,name):
+def load_validation(name):
 
     edge = "s"
 
@@ -33,9 +33,9 @@ def load_validation(self,name):
 
     return {"lens": sup_l, "cornea": inf_l, "has_lens": False}
 
-def show_validations(self, list_names, list_images):
+def show_validations(list_names, list_images):
     for i in range(0,len(list_names)):
-        inf_l, sup_l, has_lens  = self._load_validation(list_names[i])
+        inf_l, sup_l, has_lens  = load_validation(list_names[i])
         if not has_lens:
             image = list_images[i]
             for i in range(1, len(inf_l)):

@@ -1,8 +1,9 @@
-from Pipeline.process import ProccesClass
-from Pipeline.preprocess import PreproccessClass
 from Utils.utils import _read_images
 from Utils.parameter_manager import ParameterManagerClass
-from Validation.validate_results import ValidateResults
+from Utils import utils
+from Validation.validate_results import ValidateConfiguration
+import csv
+import os
 
 ##############################################PROCCES CLASS#############################################################
 RETINA_TH_DEFAULT = [23,24,25,26,27,28]         # Diferencia de intensidad umbral para ser retina entre los vectores de SAMPLE_SIZE
@@ -32,21 +33,33 @@ def generate_parameters():
                                         yield ParameterManagerClass(retina,dist_top,disb_bot,median,sigma_color,
                                                                     sigma_space,diameter,n_bins,enhance_fuunction)
 
-
-
 def main():
-    image_list, names_list = _read_images()
+
+    dict_result = []
+    dict_parameters = []
 
     for parameters in generate_parameters():
+        dict_result.append(ValidateConfiguration().validate(parameters))
+        dict_parameters.append(parameters.get_config())
 
-        preprocces = PreproccessClass(parameters)
-        procces = ProccesClass(parameters)
+    try:
+        with open(utils.VAL_PATH + "configuration_data.csv", 'w') as csvfile:
+            writer = csv.DictWriter(csvfile)
+            writer.writeheader()
+            for data in dict_parameters:
+                writer.writerow(data)
 
-        for i in range(0, len(image_list)):
-            print(names_list[i])
-            rotated_img, enhanced_image, rotation_matrix = preprocces.pipeline(image_list[i])
-            result = procces.pipeline(rotated_img, enhanced_image, rotation_matrix)
-            eval = ValidateResults(names_list[i]).validate(result)
+        with open(utils.VAL_PATH + "result_data.csv", 'w') as csvfile:
+            writer = csv.DictWriter(csvfile)
+            writer.writeheader()
+            for data in dict_result:
+                writer.writerow(data)
+
+    except IOError:
+        print("I/O error")
+
+
+
 
 
 if __name__ == '__main__':
