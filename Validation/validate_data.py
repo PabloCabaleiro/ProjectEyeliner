@@ -1,40 +1,12 @@
 import cv2
-from Utils.utils import _read_images
-
-VAL_PATH = "validation-data\\"
+from Utils import utils
 
 class ValidateData(object):
 
-    def _load_validation(self,name):
+    path = None
 
-        edge = "s"
-
-        sup_l = []
-        inf_l = []
-
-        for line in open(VAL_PATH + name.split("\\")[1].split(".")[0] + '.txt', 'r'):
-            if line.startswith("NO_LENS"):
-                return [],[],True
-            if line.startswith("MARK"):
-                edge = "i"
-            elif edge == "s":
-                sup_l.append((int(line.split("\t")[0]),int(line.split("\t")[1])))
-            else:
-                inf_l.append((int(line.split("\t")[0]), int(line.split("\t")[1])))
-
-        return sup_l, inf_l, False
-
-    def _show_validations(self, list_names, list_images):
-        for i in range(0,len(list_names)):
-            inf_l, sup_l, has_lens  = self._load_validation(list_names[i])
-            if not has_lens:
-                image = list_images[i]
-                for i in range(1, len(inf_l)):
-                    cv2.line(image, inf_l[i - 1], inf_l[i], (0, 255, 0))
-                for i in range(1, len(sup_l)):
-                    cv2.line(image, sup_l[i - 1], sup_l[i], (255, 255, 0))
-                cv2.imshow("aoi_window", image)
-                cv2.waitKey()
+    def __init__(self):
+        self.path = utils.VAL_PATH
 
     def _set_validation_points(self, images_list, names_list):
 
@@ -90,7 +62,7 @@ class ValidateData(object):
         else:
             output = "NO_LENS"
 
-        with open(VAL_PATH + name.split("\\")[1].split(".")[0] + '.txt', 'w') as file:
+        with open(self.path + name.split("\\")[1].split(".")[0] + '.txt', 'w') as file:
             file.write(output)
             file.close()
 
@@ -118,7 +90,7 @@ class ValidateData(object):
 
     def create_validation(self):
 
-        image_list, names_list = _read_images()
+        image_list, names_list = utils._read_images()
 
         self._set_validation_points(image_list,names_list)
 
