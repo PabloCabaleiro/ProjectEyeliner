@@ -1,7 +1,7 @@
 from Utils.utils import _read_images
 from Utils.parameter_manager import ParameterManagerClass
 from Utils import utils
-from Validation.validate_results import ValidateConfiguration
+from Validation.validate_configuration import ValidateConfiguration
 import csv
 import os
 
@@ -35,28 +35,31 @@ def generate_parameters():
 
 def main():
 
-    dict_result = []
-    dict_parameters = []
+    first = True
 
     for parameters in generate_parameters():
-        dict_result.append(ValidateConfiguration().validate(parameters))
-        dict_parameters.append(parameters.get_config())
 
-    try:
-        with open(utils.VAL_PATH + "configuration_data.csv", 'w') as csvfile:
-            writer = csv.DictWriter(csvfile)
-            writer.writeheader()
-            for data in dict_parameters:
+        print(parameters.id)
+
+        try:
+            with open(utils.VAL_PATH + "configuration_data.csv", 'a') as csvfile:
+                writer = csv.DictWriter(csvfile,parameters.get_config().keys())
+                if first:
+                    writer.writeheader()
+                writer.writerow(parameters.get_config())
+
+            data = ValidateConfiguration().validate(parameters)
+
+            with open(utils.VAL_PATH + "result_data.csv", 'a') as csvfile:
+                writer = csv.DictWriter(csvfile, data.keys())
+                if first:
+                    writer.writeheader()
                 writer.writerow(data)
 
-        with open(utils.VAL_PATH + "result_data.csv", 'w') as csvfile:
-            writer = csv.DictWriter(csvfile)
-            writer.writeheader()
-            for data in dict_result:
-                writer.writerow(data)
+            first = False
 
-    except IOError:
-        print("I/O error")
+        except IOError:
+            print("I/O error")
 
 
 

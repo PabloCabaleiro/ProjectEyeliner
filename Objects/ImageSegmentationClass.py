@@ -26,8 +26,10 @@ class ImageSegmentationClass(object):
             return self.layers[-1].get_pos("bot", pos)
 
     def get_result(self):
-        if self._complete:
-            return self.layers[-2].bot_line, self.layers[-1].top_line, len(self.layers)
+        if len(self.layers) == 3:
+            return self.layers[-2].bot_line, self.layers[-1].top_line, True
+        else:
+            return None, None, False
 
     def show(self, image):
         plt.figure("Rotated image segmentation")

@@ -5,25 +5,13 @@ from Objects.ImageSegmentationClass import ImageSegmentationClass
 from Objects.LayerClass import LayerClass
 from Objects.ResultClass import ResultClass
 
-MIN_DIST_CAPAS = 20     # Distancia mínima entre capas
-CAPA_TH = 4000          # Umbral de diferencia entre filas para ser la aproximación de una capa
-BORDER_SIZE = 10        # Tamaño aproximado del borde completo desde el límite superior al inferior\
-SAMPLE_SIZE = 10        # Tamaño ventana para el estudio de las intensidades anteriores y posteriores a un borde
-DIST_MIN = 20
-N_CAPAS = 3
 
 class ProccesClass(object):
 
     filter_img = None
-    enhanced_img = None
     width = None
     height = None
-    min_dist_capas = None
-    rotation_matrix = None
     mask = None
-    retina_th = None
-    max_dist_top = None
-    max_dist_bot = None
     parameters = None
 
     def __init__(self, parameters):
@@ -31,7 +19,7 @@ class ProccesClass(object):
 
     def _get_nearest_edge(self, edge_image, column, start_position, previous_line):
 
-        for j in range(max(start_position-self.parameters.max_dist_top,previous_line),start_position+self.parameters.max_dist_bot):
+        for j in range(max(start_position-self.parameters.localization_top_window,previous_line),start_position+self.parameters.localization_bot_window):
             if edge_image[j, column] > 0:
                 return j
         return -1
@@ -68,14 +56,14 @@ class ProccesClass(object):
 
             #Distancia por encima de la aproximación
             bottom_distance = -1
-            for j in range(row,row+DIST_MIN):
+            for j in range(row,row+self.parameters.max_dist_to_roi):
                 if edge_img[j,i] > 0:
                     if not has_previous or j > previous_line.get_pos("bot", i):
                         bottom_distance = j
                         break
             #Distancia por debajo de la aproximación
             top_distance = -1
-            for j in range(row, row-DIST_MIN,-1):
+            for j in range(row, row-self.parameters.max_dist_to_roi,-1):
                 if edge_img[j,i] > 0:
                     if not has_previous or j > previous_line.get_pos("bot", i):
                         top_distance = j
@@ -100,11 +88,11 @@ class ProccesClass(object):
                     return top_distance, start_column
         return -1, -1
 
-    def _get_roi(self,edge_img, showRoi = False):
+    def _get_roi(self, edge_img, showRoi = False):
         # Localizamos lineas de interés
         rows = [sum(edge_img[row, :]) for row in range(0, self.height)]
         diff = [rows[c] - rows[c-1] for c in range(1, len(rows))]
-        roi = np.argwhere(np.array(diff) > CAPA_TH)
+        roi = np.argwhere(np.array(diff) > self.parameters.roi_th)
 
         previous_result = -1
         result = []
@@ -114,15 +102,20 @@ class ProccesClass(object):
                 result.append(previous_result)
             else:
                 try:
-                    previous_result = int(roi[roi > previous_result + self.min_dist_capas][0])
+                    previous_result = int(roi[roi > previous_result + self.parameters.min_dist_between_roi*self.height][0])
                     result.append(previous_result)
                 except:
                     break
         if showRoi:
-            plt.figure()
+            plt.figure(1)
+            plt.subplot(121)
             for row in result:
                 plt.axhline(y=row)
             plt.imshow(edge_img)
+            plt.subplot(122)
+            plt.axhline(y=self.parameters.roi_th)
+            plt.plot(diff)
+
             plt.show()
 
         return result
@@ -139,7 +132,7 @@ class ProccesClass(object):
 
         return top_line_inv, bot_line_inv
 
-    def _localization(self, edge_img, showImgs=False):
+    def _localization(self, edge_img, enhanced_img, showImgs=False):
 
         height, width = np.shape(edge_img)
         mean = np.mean(self.filter_img)
@@ -154,7 +147,7 @@ class ProccesClass(object):
 
         seg = ImageSegmentationClass()
 
-        while n_capas < N_CAPAS and n_rows < N_ROWS:
+        while n_capas < self.parameters.n_roi and n_rows < N_ROWS:
 
             layer = LayerClass(n_capas)
             left_end  = 0
@@ -202,7 +195,6 @@ class ProccesClass(object):
                 # Hay demasiado gap --> no es una línea real
                 if in_gap  and self.width-right_gap>self.width*0.8:
                     n_rows += 1
-                    print("Me salgo por la derecha!")
                     continue
 
                 in_gap = False
@@ -235,7 +227,6 @@ class ProccesClass(object):
 
                 if in_gap and left_gap>self.width*0.8:
                     n_rows += 1
-                    print("Me salgo por la izquierda!")
                     continue
 
                 layer.set_top_line(top_line[left_end+1:right_end], left_end+1, right_end)
@@ -243,12 +234,10 @@ class ProccesClass(object):
                 layer.interpolate_gaps()
 
                 # Comprobamos si es retina
-                diff = np.mean([int(np.sum(self.enhanced_img[(int(top_line[k]) + 10):(int(top_line[k]) + 20), k])) - int(
-                    np.sum(self.enhanced_img[(int(top_line[k]) - 10):int(top_line[k]), k])) for k in range(left_end + 1, right_end)])
+                diff = np.mean([int(np.sum(enhanced_img[(int(top_line[k]) + 10):(int(top_line[k]) + 20), k])) - int(
+                    np.sum(enhanced_img[(int(top_line[k]) - 10):int(top_line[k]), k])) for k in range(left_end + 1, right_end)])
 
-                print(diff / mean)
-
-                if (diff / mean) > self.parameters.retina_th or n_capas == N_CAPAS-1:
+                if (diff / mean) > self.parameters.cornea_th or n_capas == self.parameters.n_roi-1:
                     n_capas += 1
                     layer.is_retina = True
                     seg.add_layer(layer)
@@ -264,36 +253,32 @@ class ProccesClass(object):
                 seg.add_layer(layer)
 
             else:
-                print("start_column = -1!")
                 n_rows += 1
-                plt.figure("Devuelve -1")
-                plt.imshow(edge_img)
-                for row in rows:
-                    plt.axhline(y=row)
-                plt.show()
                 continue
 
             n_capas += 1
             n_rows += 1
 
         if showImgs:
-            seg.show(self.filter_img
-                     )
+            seg.show(self.filter_img)
 
         return seg
 
-    def pipeline(self, filter_img, enhanced_img, rotate_matrix):
+    def pipeline(self, filter_img, enhanced_img, rotation_matrix):
         self.filter_img = filter_img
         self.height, self.width, _ = np.shape(filter_img)
-        self.min_dist_capas = int(0.1*self.height)
-        self.rotation_matrix = rotate_matrix
-        self.mask = self._pre_get_masks()
-        self.enhanced_img = enhanced_img
 
-        edge_img = self._get_edges(np.ones((5, 5), np.uint8), canny_values=(50, 80), showEdges=False)
+        self.mask = self._pre_get_masks()
+
+        edge_img = self._get_edges(np.ones((5, 5), np.uint8), (50, 80) , showEdges=False)
+
         edge_img = cv2.bitwise_or(edge_img, edge_img, mask=self.mask)
-        segmentation = self._localization(edge_img, showImgs=False)
-        top_line, bot_line, n_capas = segmentation.get_result()
-        top_line, bot_line = self._rotate_back(top_line,bot_line,self.rotation_matrix)
-        result = ResultClass(top_line,bot_line,n_capas)
-        return result
+
+        segmentation = self._localization(edge_img, enhanced_img, showImgs=False)
+
+        top_line, bot_line, has_lens = segmentation.get_result()
+
+        if has_lens:
+            top_line, bot_line = self._rotate_back(top_line,bot_line, rotation_matrix)
+
+        return ResultClass(top_line,bot_line,has_lens)

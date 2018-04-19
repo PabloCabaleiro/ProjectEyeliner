@@ -1,6 +1,5 @@
 from Utils import utils
-from Pipeline.process import ProccesClass
-from Pipeline.preprocess import PreproccessClass
+from Pipeline.Pipe import PipeClass
 
 class ValidateConfiguration(object):
 
@@ -31,27 +30,22 @@ class ValidateConfiguration(object):
                 mse += (res)**2
                 mae += abs(res)
 
-        return mse, mae, n
+        return mse/n, mae/n
 
     def _validate_result(self, result, eval_data):
 
-        tp = fn = fp = tn = mse = mae = n = 0
+        tp = fn = fp = tn = n = 0
+        mse = mae = None
 
-        if eval_data.has_lens and result.n_capas < 3:
+        if eval_data["has_lens"] and not result.has_lens:
             tp +=1
-        elif eval_data.no_lens and result.n_capas == 3:
+        elif eval_data["has_lens"] and result.has_lens:
             fn +=1
-        elif not eval_data.no_lens and result.n_capas < 3:
+        elif not eval_data["has_lens"] and not result.has_lens:
             fp += 1
-        elif not eval_data.no_lens:
+        elif not eval_data["has_lens"]:
             tn += 1
-            mse_img, mae_img, n_img = self._get_error(result.lens, result.cornea, eval_data.lens, eval_data.cornea)
-            mse += mse_img
-            mae += mae_img
-            n += n_img
-
-        mse = mse/n
-        mae = mae/n
+            mse, mae = self._get_error(result, eval_data["lens"], eval_data["cornea"])
 
         return mse, mae, tp, tn, fp, fn
 
@@ -59,26 +53,29 @@ class ValidateConfiguration(object):
 
         image_list, names_list = utils._read_images()
 
-        preprocces = PreproccessClass(parameters)
-        procces = ProccesClass(parameters)
-
         global_mae = global_mse = global_tp = global_tn = global_fp = global_fn = 0
         dict_data = {"CONFIG_ID": parameters.id}
 
         for i in range(0, len(image_list)):
-            rotated_img, enhanced_image, rotation_matrix = preprocces.pipeline(image_list[i])
-            result = procces.pipeline(rotated_img, enhanced_image, rotation_matrix)
-            eval_data = utils.load_validation(names_list[i])
-            mse, mae, tp, tn, fp, fn = self._validate_result(result,eval_data)
 
-            dict_data["MSE_"+names_list[i]] = mse
-            dict_data["MAE_" + names_list[i]] = mae
-            global_mae += mae
-            global_mse += mse
-            global_tp += tp
-            global_tn += tn
-            global_fp += fp
-            global_fn += fn
+            result = PipeClass(parameters).run(image_list[i])
+            eval_data = utils.load_validation(names_list[i])
+
+            if result != None:
+                mse, mae, tp, tn, fp, fn = self._validate_result(result,eval_data)
+
+                dict_data["MSE_"+names_list[i]] = mse
+                dict_data["MAE_" + names_list[i]] = mae
+                if mae != None and mse != None:
+                    global_mae += mae
+                    global_mse += mse
+                global_tp += tp
+                global_tn += tn
+                global_fp += fp
+                global_fn += fn
+            else:
+                dict_data["MSE_" + names_list[i]] = None
+                dict_data["MAE_" + names_list[i]] = None
 
         acc, tpr, tnr, ppv, npv = self._get_metrics(global_tp,global_tn,global_fp,global_fn)
 
