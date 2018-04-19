@@ -96,7 +96,7 @@ class ProccesClass(object):
 
         previous_result = -1
         result = []
-        while 1:
+        while len(roi) > 0:
             if previous_result == -1:
                 previous_result = int(roi[0])
                 result.append(previous_result)

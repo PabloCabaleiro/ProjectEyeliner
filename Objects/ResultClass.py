@@ -27,7 +27,7 @@ class ResultClass(object):
         else: return -1
 
     def get_cornea_pos(self, i):
-        if -1 < i - self.cornea_start_line and i < self.cornea_end_line and i < len(self.cornea):
+        if -1 < i - self.cornea_start_line and i < self.cornea_end_line and i < len(self.cornea)-1:
             return self.cornea[i - self.cornea_start_line][1]
         else: return -1
 
