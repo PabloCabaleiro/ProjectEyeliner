@@ -22,7 +22,7 @@ class ResultClass(object):
         self.lens_end_line = int(round(lens_line[-1][0]))
 
     def get_lens_pos(self, i):
-        if -1 < i - self.lens_start_line and i < self.lens_end_line and i < len(self.lens):
+        if -1 < i - self.lens_start_line and i < self.lens_end_line and i < len(self.lens)-1:
             return self.lens[i - self.lens_start_line][1]
         else: return -1
 
