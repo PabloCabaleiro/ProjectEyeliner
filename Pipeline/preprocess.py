@@ -14,7 +14,6 @@ SMALL_TYPE = "small"
 
 class PreproccessClass(object):
 
-    img = None
     parameters = None
 
     def __init__(self, parameters):
@@ -54,8 +53,8 @@ class PreproccessClass(object):
         else:
             return -1
 
-    def _pre_get_masks(self, showMask=False):
-        filter_img = cv2.GaussianBlur(self.img, (3, 3), 0)
+    def _pre_get_masks(self, img, showMask=False):
+        filter_img = cv2.GaussianBlur(img, (3, 3), 0)
         _, mask = cv2.threshold(filter_img, 5, 255, cv2.THRESH_BINARY)
         mask = cv2.cvtColor(mask, cv2.COLOR_BGR2GRAY)
         kernel = np.ones((9, 9), np.uint8)
@@ -67,18 +66,17 @@ class PreproccessClass(object):
             cv2.waitKey()
         return dilated_img
 
-    def _remove_UI(self):
-        copy_img = self.img.copy()
-        type = self._get_image_type(np.shape(self.img))
+    def _remove_UI(self, img):
+        type = self._get_image_type(np.shape(img))
         if type != -1:
             initial_pos = RECTANGLE_POS[type][0]
             lenght = RECTANGLE_POS[type][1]
             kernel = np.ones((3, 3))
             open_img = cv2.morphologyEx(
-                self.img[initial_pos[1]:initial_pos[1] + lenght, initial_pos[0]:initial_pos[0] + lenght], cv2.MORPH_OPEN,
+                img[initial_pos[1]:initial_pos[1] + lenght, initial_pos[0]:initial_pos[0] + lenght], cv2.MORPH_OPEN,
                 kernel)
-            copy_img[initial_pos[1]:initial_pos[1] + lenght, initial_pos[0]:initial_pos[0] + lenght] = open_img
-            return copy_img
+            img[initial_pos[1]:initial_pos[1] + lenght, initial_pos[0]:initial_pos[0] + lenght] = open_img
+        return img
 
     def _pre_median_bilateral(self, filter_image, bilateral_values, median_value):
 
@@ -118,7 +116,7 @@ class PreproccessClass(object):
 
         return hist, bin_size
 
-    def _pre_rotate(self, filter_image, nbins=12, showRotation=False):
+    def _pre_rotate(self, img, filter_image, nbins=12, showRotation=False):
 
         blur_img = cv2.GaussianBlur(filter_image.copy(), ksize=(17, 17), sigmaX=100)
 
@@ -131,7 +129,7 @@ class PreproccessClass(object):
         if showRotation:
             plt.figure(1)
             plt.subplot(131)
-            plt.imshow(self.img)
+            plt.imshow(img)
             plt.subplot(132)
             plt.axvline(x=90)
             plt.plot([v * bin_size for v in list(range(0, nbins))], hog)
@@ -177,10 +175,9 @@ class PreproccessClass(object):
 
 
     def pipeline(self, img):
-        self.img = img
 
-        filter_img = self._remove_UI()
-        rotate_img, rotation_matrix = self._pre_rotate(filter_img, nbins=self.parameters.n_bins, showRotation=False)
+        filter_img = self._remove_UI(img)
+        rotate_img, rotation_matrix = self._pre_rotate(img, filter_img, nbins=self.parameters.n_bins, showRotation=False)
 
         if self.parameters.enhance_function == "top_hat":
             enhanced_image = self._pre_enhance_top_hat(rotate_img)

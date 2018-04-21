@@ -1,8 +1,9 @@
-from Pipeline.process import ProccesClass
-from Pipeline.preprocess import PreproccessClass
 from Utils.utils import _read_images
 from Utils.parameter_manager import ParameterManagerClass
-from Validation.validate_results import ValidateResults
+from Utils import utils
+from Validation.validate_configuration import ValidateConfiguration
+import csv
+import os
 
 ##############################################PROCCES CLASS#############################################################
 RETINA_TH_DEFAULT = [23,24,25,26,27,28]         # Diferencia de intensidad umbral para ser retina entre los vectores de SAMPLE_SIZE
@@ -32,21 +33,36 @@ def generate_parameters():
                                         yield ParameterManagerClass(retina,dist_top,disb_bot,median,sigma_color,
                                                                     sigma_space,diameter,n_bins,enhance_fuunction)
 
-
-
 def main():
-    image_list, names_list = _read_images()
+
+    first = True
 
     for parameters in generate_parameters():
 
-        preprocces = PreproccessClass(parameters)
-        procces = ProccesClass(parameters)
+        print(parameters.id)
 
-        for i in range(0, len(image_list)):
-            print(names_list[i])
-            rotated_img, enhanced_image, rotation_matrix = preprocces.pipeline(image_list[i])
-            result = procces.pipeline(rotated_img, enhanced_image, rotation_matrix)
-            eval = ValidateResults(names_list[i]).validate(result)
+        try:
+            with open(utils.VAL_PATH + "configuration_data.csv", 'a') as csvfile:
+                writer = csv.DictWriter(csvfile,parameters.get_config().keys())
+                if first:
+                    writer.writeheader()
+                writer.writerow(parameters.get_config())
+
+            data = ValidateConfiguration().validate(parameters)
+
+            with open(utils.VAL_PATH + "result_data.csv", 'a') as csvfile:
+                writer = csv.DictWriter(csvfile, data.keys())
+                if first:
+                    writer.writeheader()
+                writer.writerow(data)
+
+            first = False
+
+        except IOError:
+            print("I/O error")
+
+
+
 
 
 if __name__ == '__main__':

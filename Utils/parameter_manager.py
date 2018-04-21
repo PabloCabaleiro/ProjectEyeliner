@@ -1,8 +1,18 @@
+from hashlib import blake2b
 
 ##############################################PROCCES CLASS#############################################################
-RETINA_TH_DEFAULT = 20          # Diferencia de intensidad umbral para ser retina entre los vectores de SAMPLE_SIZE
-MAX_DIST_PIXELS_TOP_DEFAULT = 10# Ventana de movimiento entre píxeles colindantes de un borde hacia arriba
-MAX_DIST_PIXELS_BOT_DEFAULT = 10# Ventana de movimiento entre píxeles colindantes de un borde hacia abajo
+#Detección de ROI
+CORNEA_TH_DEFAULT = 24           # Diferencia de intensidad umbral para ser cornea entre los vectores de SAMPLE_SIZE
+MAX_DIST_TO_ROI_DEFAULT = 20            # Distancia máxima a la línea marcada como ROI para ser punto de inicio
+#Aproximación al borde
+LOCALIZATION_TOP_WINDOW_DEFAULT = 10 # Ventana de movimiento entre píxeles colindantes de un borde hacia arriba
+LOCALIZATION_BOT_WINDOW_DEFAULT = 10 # Ventana de movimiento entre píxeles colindantes de un borde hacia abajo
+#Detección de capas
+MIN_DIST_BETWEEN_ROI_RATE = 0.05      # Distancia mínima entre capas
+ROI_TH_DEFAULT = 4000          # Umbral de diferencia entre filas para ser la aproximación de una capa
+EDGE_WIDTH_DEFAULT = 10        # Tamaño aproximado del borde completo desde el límite superior al inferior\
+SAMPLE_WINDOW_DEFAULT = 10       # Tamaño ventana para el estudio de las intensidades anteriores y posteriores a un borde
+N_ROI_DEFAULT = 3
 
 #############################################PREPROCCES CLASS###########################################################
 MEDIAN_VALUE_DEFAULT = 3
@@ -16,25 +26,32 @@ ENHANCE_FUNCTION_DEFAULT = "top_hat" # Enhance function
 
 class ParameterManagerClass(object):
 
-    retina_th = RETINA_TH_DEFAULT
-    max_dist_top = MAX_DIST_PIXELS_TOP_DEFAULT
-    max_dist_bot = MAX_DIST_PIXELS_BOT_DEFAULT
+    id = None
+    min_dist_between_roi = MIN_DIST_BETWEEN_ROI_RATE
+    roi_th = ROI_TH_DEFAULT
+    cornea_th = CORNEA_TH_DEFAULT
+    max_dist_to_roi = MAX_DIST_TO_ROI_DEFAULT
+    edge_width = EDGE_WIDTH_DEFAULT
+    sample_window = SAMPLE_WINDOW_DEFAULT
+    localization_top_window = LOCALIZATION_TOP_WINDOW_DEFAULT
+    localization_bot_window = LOCALIZATION_BOT_WINDOW_DEFAULT
     median_value = MEDIAN_VALUE_DEFAULT
     sigma_color = BILATERAL_SIGMA_COLOR_DEFAULT
     sigma_space = BILATERAL_SIGMA_SPACE_DEFAULT
     bilateral_diameter = BILATERAL_DIAMETER_DEFAULT
     n_bins = N_BINS_DEFAULT
     enhance_function = ENHANCE_FUNCTION_DEFAULT
+    n_roi = N_ROI_DEFAULT
 
 
     def __init__(self, retina_th = None, max_dist_top = None, max_dist_bot = None, median_value = None, sigma_color = None,
-                 sigma_space = None, bilateral_diameter = None, n_bins = None, enhance_kernel = None):
-        if retina_th:
-            self.retina_th = retina_th
+                 sigma_space = None, bilateral_diameter = None, n_bins = None, enhance_function = None, min_dist_roi = None,
+                 roi_th = None, cornea_th = None, border_size = None, max_dist_to_roi = None, n_roi = None, sample_size= None):
+
         if max_dist_top:
-            self.max_dist_top = max_dist_top
+            self.localization_top_window = max_dist_top
         if max_dist_bot:
-            self.max_dist_bot = max_dist_bot
+            self.localization_bot_window = max_dist_bot
         if median_value:
             self.median_value = median_value
         if sigma_color:
@@ -45,5 +62,46 @@ class ParameterManagerClass(object):
             self.bilateral_diameter = bilateral_diameter
         if n_bins:
             self.n_bins = n_bins
-        if enhance_kernel:
-            self.enhance_kernel = enhance_kernel
+        if enhance_function:
+            self.enhance_function = enhance_function
+        if min_dist_roi:
+            self.min_dist_between_roi = min_dist_roi
+        if roi_th:
+            self.roi_th = roi_th
+        if cornea_th:
+            self.cornea_th = cornea_th
+        if border_size:
+            self.edge_width = border_size
+        if max_dist_to_roi:
+            self.max_dist_to_roi = max_dist_to_roi
+        if n_roi:
+            self.n_roi = n_roi
+        if sample_size:
+            self.sample_window = sample_size
+
+
+
+        h = blake2b(digest_size=20)
+        config_id = str(self.get_config()).encode('utf-8')
+        h.update(config_id)
+        self.id = h.hexdigest()
+
+
+    def get_config(self):
+        return {
+            "CORNEA_TH": self.cornea_th,
+            "LOCALIZATION_TOP_WINDOW": self.localization_top_window,
+            "LOCALIZATION_BOT_WINDOW": self.localization_bot_window,
+            "MEDIAN_VALUE": self.median_value,
+            "SIGMA_COLOR": self.sigma_color,
+            "SIGMA_SPACE": self.sigma_space,
+            "BILATERAL_DIAMETER": self.bilateral_diameter,
+            "N_BINS": self.n_bins,
+            "ENHANCE_FUNCTION": self.enhance_function,
+            "MIN_DIST_BETWEEN_ROI": self.min_dist_between_roi,
+            "ROI_TH": self.roi_th,
+            "EDGE_WIDTH": self.edge_width,
+            "MAX_DIST_TO_ROI": self.max_dist_to_roi,
+            "N_ROI": self.n_roi,
+            "SAMPLE_WINDOW": self.sample_window
+        }
