@@ -1,5 +1,5 @@
 
-class ResultMetrics(object):
+class VerticalMetrics(object):
 
     distances = None
     start_point = -1
