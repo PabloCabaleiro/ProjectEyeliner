@@ -15,8 +15,8 @@ def _read_images():
 
     return image_list, names_list
 
-def get_dist(self,point1,point2):
-    return math.sqrt((point2[1]-point1[1])**2 + (point2[0]-point1[1])**2)
+def get_dist(point1,point2):
+    return math.sqrt((point2[1]-point1[1])**2 + (point2[0]-point1[0])**2)
 
 def load_validation(name):
 

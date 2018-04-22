@@ -21,15 +21,29 @@ class ResultClass(object):
         self.lens_start_line = int(round(lens_line[0][0]))
         self.lens_end_line = int(round(lens_line[-1][0]))
 
-    def get_lens_pos(self, i):
-        if -1 < i - self.lens_start_line and i < self.lens_end_line and i < len(self.lens)-1:
+    def get_lens_value(self, i):
+        if i >= self.lens_start_line and i <= self.lens_end_line:
             return self.lens[i - self.lens_start_line][1]
-        else: return -1
+        else:
+            raise("Trying to access to a non valid position on lens array")
 
-    def get_cornea_pos(self, i):
-        if -1 < i - self.cornea_start_line and i < self.cornea_end_line and i < len(self.cornea)-1:
+    def get_cornea_value(self, i):
+        if i >= self.cornea_start_line and i <= self.cornea_end_line:
             return self.cornea[i - self.cornea_start_line][1]
-        else: return -1
+        else:
+            raise ("Trying to access to a non valid position on cornea array")
+
+    def get_lens_point(self, i):
+        if i >= self.lens_start_line and i <= self.lens_end_line:
+            return self.lens[i - self.lens_start_line]
+        else:
+            raise("Trying to access to a non valid position on lens array")
+
+    def get_cornea_point(self, i):
+        if i >= self.cornea_start_line and i <= self.cornea_end_line:
+            return self.cornea[i - self.cornea_start_line]
+        else:
+            raise ("Trying to access to a non valid position on cornea array")
 
     def set_cornea_line(self, cornea_line):
         self.cornea = cornea_line
