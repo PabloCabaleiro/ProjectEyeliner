@@ -17,14 +17,14 @@ class ValidateConfiguration(object):
         n = len(top_line) + len(bot_line)
 
         for x,y in top_line:
-            pred = result.get_lens_pos(x)
+            pred = result.get_lens_value(x)
             if pred > -1:
                 res = y - pred
                 mse += (res)**2
                 mae += abs(res)
 
         for x,y in bot_line:
-            pred = result.get_cornea_pos(x)
+            pred = result.get_cornea_value(x)
             if pred > 1:
                 res = y - pred
                 mse += (res)**2
