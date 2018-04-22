@@ -53,6 +53,6 @@ class NearestMetrics(object):
                     if distance < dist_min["dist"]:
                         dist_min = {"dist": distance, "cornea_pos": cornea_index}
 
-            self.distances.append(dist_min)
+            self.distances.append(dist_min["dist"])
 
 

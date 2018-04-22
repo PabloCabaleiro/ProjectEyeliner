@@ -1,8 +1,6 @@
 from Utils import utils
 
 class NormalMetrics(object):
-
-
     distances = None
 
     def __init__(self, result):

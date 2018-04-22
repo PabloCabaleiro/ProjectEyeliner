@@ -22,7 +22,7 @@ class TestMetrics(unittest.TestCase):
         metrics = NearestMetrics(result,100,10,0.05)
         self.assertEqual(len(expected_results),len(metrics.distances))
         for i in range(0,len(expected_results)):
-            self.assertAlmostEqual(expected_results[i],metrics.distances[i]["dist"])
+            self.assertAlmostEqual(expected_results[i],metrics.distances[i])
 
     def test_nearesst_different_sizes(self):
         expected_results = [math.sqrt(5),math.sqrt(2),2,math.sqrt(5),math.sqrt(8),math.sqrt(8),math.sqrt(5),2,math.sqrt(2),math.sqrt(5)]
@@ -30,7 +30,7 @@ class TestMetrics(unittest.TestCase):
         metrics = NearestMetrics(result,100,10,0.05)
         self.assertEqual(len(expected_results),len(metrics.distances))
         for i in range(0,len(expected_results)):
-            self.assertAlmostEqual(expected_results[i],metrics.distances[i]["dist"])
+            self.assertAlmostEqual(expected_results[i],metrics.distances[i])
 
     def test_nearest_second_case(self):
         expected_results = [4,math.sqrt(10),math.sqrt(13),math.sqrt(10),math.sqrt(2),1,1,math.sqrt(5),math.sqrt(5),
@@ -39,7 +39,7 @@ class TestMetrics(unittest.TestCase):
         metrics = NearestMetrics(result,100,10,0.05)
         self.assertEqual(len(expected_results), len(metrics.distances))
         for i in range(0, len(expected_results)):
-            self.assertAlmostEqual(expected_results[i], metrics.distances[i]["dist"])
+            self.assertAlmostEqual(expected_results[i], metrics.distances[i])
 
     ###############################################NORMAL TEST########################################################
 
@@ -49,7 +49,7 @@ class TestMetrics(unittest.TestCase):
         metrics = NormalMetrics(result)
         self.assertEqual(len(expected_results),len(metrics.distances))
         for i in range(0,len(expected_results)):
-            self.assertAlmostEqual(expected_results[i],metrics.distances[i]["dist"])
+            self.assertAlmostEqual(expected_results[i],metrics.distances[i])
 
     def test_normal_different_sizes(self):
         expected_results = [-1,math.sqrt(20),3,4,3,4,math.sqrt(13),math.sqrt(2)]
@@ -57,7 +57,7 @@ class TestMetrics(unittest.TestCase):
         metrics = NormalMetrics(result)
         self.assertEqual(len(expected_results),len(metrics.distances))
         for i in range(0,len(expected_results)):
-            self.assertAlmostEqual(expected_results[i],metrics.distances[i]["dist"])
+            self.assertAlmostEqual(expected_results[i],metrics.distances[i])
 
     def test_normal_second_case(self):
         expected_results = [-1, math.sqrt(13), math.sqrt(13), math.sqrt(5), 1, math.sqrt(2), math.sqrt(5),
@@ -66,11 +66,33 @@ class TestMetrics(unittest.TestCase):
         metrics = NormalMetrics(result)
         self.assertEqual(len(expected_results), len(metrics.distances))
         for i in range(0, len(expected_results)):
-            self.assertAlmostEqual(expected_results[i], metrics.distances[i]["dist"])
+            self.assertAlmostEqual(expected_results[i], metrics.distances[i])
 
     ###############################################VERTICAL TEST########################################################
 
+    def test_vertical_case(self):
+        expected_results = [3,3,2,3,4,3,4,2,3,2]
+        result = ResultClass(self.data1["lens"], self.data1["cornea"], True)
+        metrics = VerticalMetrics(result)
+        self.assertEqual(len(expected_results),len(metrics.distances))
+        for i in range(0,len(expected_results)):
+            self.assertAlmostEqual(expected_results[i],metrics.distances[i])
 
+    def test_vertical_different_sizes(self):
+        expected_results = [-1,-1,2,3,4,3,4,2,3,-1]
+        result = ResultClass(self.data2["lens"], self.data2["cornea"], True)
+        metrics = VerticalMetrics(result)
+        self.assertEqual(len(expected_results),len(metrics.distances))
+        for i in range(0,len(expected_results)):
+            self.assertAlmostEqual(expected_results[i],metrics.distances[i])
+
+    def test_vertical_second_case(self):
+        expected_results = [4,4,4,4,2,1,1,4,3,2,5]
+        result = ResultClass(self.data3["lens"], self.data3["cornea"], True)
+        metrics = VerticalMetrics(result)
+        self.assertEqual(len(expected_results), len(metrics.distances))
+        for i in range(0, len(expected_results)):
+            self.assertAlmostEqual(expected_results[i], metrics.distances[i])
 
 if __name__ == '__main__':
     unittest.main()
