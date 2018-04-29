@@ -1,6 +1,7 @@
 import glob
 import cv2
 import math
+import matplotlib.pyplot as plt
 
 VAL_PATH = "validation-data\\"
 IMG_PATH = "imgenestfm\\*"
@@ -48,3 +49,63 @@ def show_validations(list_names, list_images):
                 cv2.line(image, eval_result["lens"][i - 1], eval_result["lens"][i], (255, 255, 0))
             cv2.imshow("aoi_window", image)
             cv2.waitKey()
+
+def distances_to_color(distances):
+    max_dist = max(distances)
+    min_dist = min(distances)
+    colors = []
+    norm_dist = [(value-min_dist)/(max_dist-min_dist) for value in distances]
+    for value in norm_dist:
+        if value > 0.9:
+            colors.append((0, 255, 0))
+        elif value > 0.8:
+            colors.append((102, 255, 51))
+        elif value > 0.7:
+            colors.append((153, 255, 51))
+        elif value > 0.6:
+            colors.append((204, 255, 51))
+        elif value > 0.5:
+            colors.append(((255, 255, 0)))
+        elif value > 0.4:
+            colors.append((255, 204, 0))
+        elif value > 0.3:
+            colors.append((255, 153, 51))
+        elif value > 0.2:
+            colors.append((255, 102, 0))
+        elif value > 0.1:
+            colors.append((255, 51, 0))
+        elif value > 0:
+            colors.append((255, 0, 0))
+
+def onclick(self, event):
+    x = event.x
+    y = event.y
+
+    #Check top line
+    top_x = x - self.top2bot["start"]
+    top_point = self.top2bot["line"][top_x]
+    if (x,y) == top_point:
+        plt.plot([x,top_point[0]],[y,top_point[1]])
+
+    #Check bot line
+    bot_x = x - self.bot2top["start"]
+    bot_point = self.bot2top["line"][bot_x]
+    if (x, y) == bot_point:
+        plt.plot([x, bot_point[0]], [y, bot_point[1]])
+
+
+def show_metrics(self, image):
+    fig, ax = plt.figure("Vertical metric")
+    plt.imshow(image)
+    colors = distances_to_color(self.top2bot["distances"])
+
+    for i in range(0,len(self.top2bot["distances"])):
+        point = self.top2bot["line"][i]
+        plt.plt(point[0],point[1], color = colors[i])
+    colors = distances_to_color(self.bot2top["distances"])
+
+    for i in range(0,len(self.bot2top["distances"])):
+        point = self.bot2top["line"][i]
+        plt.plt(point[0],point[1], color = colors[i])
+
+    cid = fig.canvas.mpl_connect('button_press_event', lambda event: onclick(self, event))

@@ -1,13 +1,21 @@
 from Utils import utils
 
 class NormalMetrics(object):
-    distances = None
+
+    bot2top = None
+    top2bot = None
 
     def __init__(self, result):
-        self.distances = []
+
         self.operate(result)
 
-    def operate(self,result):
+    def operate(self, result):
+        self.bot2top_operate(result)
+        self.top2bot_operate(result)
+
+    def top2bot_operate(self,result):
+        distances = []
+        points = []
 
         for i in range(result.lens_start_line, result.lens_end_line+1):
 
@@ -39,21 +47,93 @@ class NormalMetrics(object):
                         break
                     else:
                         #We got a result
-                        self.distances.append(utils.get_dist(cornea_point,lens_point))
+                        distances.append(utils.get_dist(cornea_point,lens_point))
+                        points.append(cornea_point)
                         finish = True
                         break
                 elif dy > 1 and result.get_cornea_value(i+1) <= j:
-                    self.distances.append(utils.get_dist(lens_point,result.get_cornea_point(i+1)))
+                    point = result.get_cornea_point(i+1)
+                    distances.append(utils.get_dist(lens_point,point))
+                    points.append(point)
                     finish = True
                     break
                 elif dy < -1 and result.get_cornea_value(i+1) <= j:
-                    self.distances.append(utils.get_dist(lens_point, result.get_cornea_point(i - 1)))
+                    point = result.get_cornea_point(i - 1)
+                    distances.append(utils.get_dist(lens_point, point))
+                    points.append(point)
                     finish = True
                     break
 
 
             if not finish:
-                self.distances.append(-1)
+                distances.append(-1)
+                points.append(None)
+
+        self.top2bot = {"distances": distances, "points": points, "start": result.lens_start_line, "end": result.lens_end_line, "line": result.lens}
+
+    def bot2top_operate(self, result):
+        distances = []
+        points = []
+
+        for i in range(result.cornea_start_line, result.cornea_end_line + 1):
+
+            # Set as negative beacause top of image is 0 so the order in y axis changes
+            if i == result.cornea_start_line:
+                dy = (result.get_cornea_value(i + 1) - result.get_cornea_value(i))
+            elif i == result.cornea_end_line:
+                dy = (result.get_cornea_value(i) - result.get_cornea_value(i - 1))
+            else:
+                # We want to set dx = 1 and we know its allways gonna be 2. So div dy for 2 to normalize.
+                dy = (result.get_cornea_value(i + 1) - result.get_cornea_value(i - 1)) / 2
+
+            finish = False
+            lens_values = [y for _, y in result.lens]
+
+            for j in range(max(lens_values), min(lens_values) - 1, -1):
+                cornea_point = result.get_cornea_point(i)
+                pos = abs(cornea_point[1] - j) * dy + cornea_point[0]
+
+                if pos < result.lens_start_line or pos > result.lens_end_line:
+                    break
+
+                pos = round(pos)
+
+                lens_point = result.get_lens_point(pos)
+
+                if lens_point[1] >= j:
+                    if (dy > 0 and (pos - 1) < result.lens_start_line) or (
+                            dy < 0 and (pos + 1) > result.lens_end_line):
+                        break
+                    else:
+                        # We got a result
+                        distances.append(utils.get_dist(cornea_point, lens_point))
+                        points.append(lens_point)
+                        finish = True
+                        break
+                elif dy > 1 and result.get_lens_value(i + 1) <= j:
+                    point = result.get_lens_point(i + 1)
+                    distances.append(utils.get_dist(cornea_point, point))
+                    points.append(point)
+                    finish = True
+                    break
+                elif dy < -1 and result.get_lens_value(i + 1) <= j:
+                    point = result.get_lens_point(i - 1)
+                    distances.append(utils.get_dist(cornea_point, point))
+                    points.append(point)
+                    finish = True
+                    break
+
+            if not finish:
+                distances.append(-1)
+                points.append(None)
+
+        self.bot2top = {"distances": distances, "points": points, "start": result.cornea_start_line,
+                        "end": result.cornea_end_line, "line": result.cornea}
+
+    def show(self, img):
+        utils.show_metrics(self,img)
+
+
 
 
 
