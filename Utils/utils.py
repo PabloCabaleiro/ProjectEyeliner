@@ -2,6 +2,7 @@ import glob
 import cv2
 import math
 import matplotlib.pyplot as plt
+import numpy as np
 
 VAL_PATH = "validation-data\\"
 IMG_PATH = "imgenestfm\\*"
@@ -54,58 +55,81 @@ def distances_to_color(distances):
     max_dist = max(distances)
     min_dist = min(distances)
     colors = []
-    norm_dist = [(value-min_dist)/(max_dist-min_dist) for value in distances]
-    for value in norm_dist:
-        if value > 0.9:
-            colors.append((0, 255, 0))
-        elif value > 0.8:
-            colors.append((102, 255, 51))
-        elif value > 0.7:
-            colors.append((153, 255, 51))
-        elif value > 0.6:
-            colors.append((204, 255, 51))
-        elif value > 0.5:
-            colors.append(((255, 255, 0)))
-        elif value > 0.4:
-            colors.append((255, 204, 0))
-        elif value > 0.3:
-            colors.append((255, 153, 51))
-        elif value > 0.2:
-            colors.append((255, 102, 0))
-        elif value > 0.1:
-            colors.append((255, 51, 0))
-        elif value > 0:
-            colors.append((255, 0, 0))
+    mean_dist = np.mean(distances)
+    dist_range = (max_dist-min_dist)
+    norm_dist = []
 
-def onclick(self, event):
-    x = event.x
-    y = event.y
+    for i in range(0, len(distances)):
+        if distances[i] == -1:
+            norm_dist.append(mean_dist)
+        else:
+            norm_dist.append((distances[i]-min_dist)/dist_range)
 
-    #Check top line
-    top_x = x - self.top2bot["start"]
-    top_point = self.top2bot["line"][top_x]
-    if (x,y) == top_point:
-        plt.plot([x,top_point[0]],[y,top_point[1]])
-
-    #Check bot line
-    bot_x = x - self.bot2top["start"]
-    bot_point = self.bot2top["line"][bot_x]
-    if (x, y) == bot_point:
-        plt.plot([x, bot_point[0]], [y, bot_point[1]])
+    for i in range(0,len(norm_dist)):
+        if distances[i] == -1:
+            colors.append((0,0,0))
+        elif norm_dist[i] > 0.9:
+            colors.append((0, 1, 0))
+        elif norm_dist[i] > 0.8:
+            colors.append((0.4, 1, 0.2))
+        elif norm_dist[i] > 0.7:
+            colors.append((0.6, 1, 0.2))
+        elif norm_dist[i] > 0.6:
+            colors.append((0.8, 1, 0.2))
+        elif norm_dist[i] > 0.5:
+            colors.append(((1, 1, 0)))
+        elif norm_dist[i] > 0.4:
+            colors.append((1, 0.8, 0))
+        elif norm_dist[i] > 0.3:
+            colors.append((1, 0.6, 0.2))
+        elif norm_dist[i] > 0.2:
+            colors.append((1, 0.4, 0))
+        elif norm_dist[i] > 0.1:
+            colors.append((1, 0.2, 0))
+        elif norm_dist[i] >= 0:
+            colors.append((1, 0, 0))
+    return colors
 
 
-def show_metrics(self, image):
-    fig, ax = plt.figure("Vertical metric")
-    plt.imshow(image)
-    colors = distances_to_color(self.top2bot["distances"])
+def show_metrics(self, image, name):
 
-    for i in range(0,len(self.top2bot["distances"])):
-        point = self.top2bot["line"][i]
-        plt.plt(point[0],point[1], color = colors[i])
-    colors = distances_to_color(self.bot2top["distances"])
+    top2bot_colors = distances_to_color(self.top2bot["distances"])
+    bot2top_colors = distances_to_color(self.bot2top["distances"])
 
-    for i in range(0,len(self.bot2top["distances"])):
-        point = self.bot2top["line"][i]
-        plt.plt(point[0],point[1], color = colors[i])
+    aoi_params = dict(top2bot_line = self.top2bot["line"], top2bot_points = self.top2bot["points"],  top2bot_start = self.top2bot["start"], top2bot_end = self.top2bot["end"],
+                      bot2top_line = self.bot2top["line"], bot2top_points = self.bot2top["points"], bot2top_start = self.top2bot["start"], bot2top_end = self.top2bot["end"],
+                      image=image)
 
-    cid = fig.canvas.mpl_connect('button_press_event', lambda event: onclick(self, event))
+    cv2.namedWindow(name)
+    cv2.setMouseCallback(name, _on_mouse_clicked_aoi, aoi_params)
+
+    for i in range(1,len(self.top2bot["line"])):
+        for i in range(1, len(self.top2bot["line"])):
+            cv2.line(image, self.top2bot["line"][i - 1], self.top2bot["line"][i], top2bot_colors[i])
+
+    for i in range(1,len(self.bot2top["line"])):
+        for i in range(1, len(self.bot2top["line"])):
+            cv2.line(image, self.bot2top["line"][i - 1], self.bot2top["line"][i], bot2top_colors[i])
+
+
+
+def _on_mouse_clicked_aoi(event, x, y, flags, aoi_params):
+
+    img_copy = aoi_params["image"] * 1
+
+    if event == cv2.EVENT_LBUTTONDOWN:
+        if x >= aoi_params["top2bot_start"] and x <= aoi_params["top2bot_end"]:
+            pos = int(x - aoi_params["top2bot_start"])
+            if aoi_params["top2bot_line"][pos][1] == y:
+                cv2.line(img_copy, aoi_params["top2bot_line"][pos], aoi_params["top2bot_points"][pos])
+        elif x>= aoi_params["bot2top_start"] and x <=aoi_params["bot2top_end"]:
+            pos = int(x - aoi_params["bot2top_start"])
+            if aoi_params["bot2top_line"][pos][1] == y:
+                cv2.line(img_copy, aoi_params["bot2top_line"][pos], aoi_params["bot2top_points"][pos])
+
+
+
+
+    l
+
+    cv2 .imshow("aoi_window", img_copy)
