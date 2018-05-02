@@ -17,7 +17,7 @@ class NormalMetrics(object):
         distances = []
         points = []
 
-        for i in range(result.lens_start_line, result.lens_end_line):
+        for i in range(result.lens_start_line, result.lens_end_line +1):
 
             # Set as negative beacause top of image is 0 so the order in y axis changes
             if i == result.lens_start_line:
@@ -84,7 +84,7 @@ class NormalMetrics(object):
         distances = []
         points = []
 
-        for i in range(result.cornea_start_line, result.cornea_end_line):
+        for i in range(result.cornea_start_line, result.cornea_end_line+1):
 
             # Set as negative beacause top of image is 0 so the order in y axis changes
             if i == result.cornea_start_line:
@@ -111,7 +111,7 @@ class NormalMetrics(object):
                 cornea_point = result.get_cornea_point(i)
                 pos = abs(cornea_point[1] - j) * dy + cornea_point[0]
 
-                if pos < result.lens_start_line or pos > result.lens_end_line:
+                if pos < result.lens_start_line or pos >= result.lens_end_line:
                     break
 
                 pos = int(pos)

@@ -102,13 +102,13 @@ def show_metrics(self, image, name):
                       image=image)
 
 
-    for i in range(1, len(self.top2bot["line"])):
+    for i in range(1, len(self.top2bot["distances"])):
         point = self.top2bot["line"][i]
         image[point[1]-1, point[0], :] = top2bot_colors[i]
         image[point[1],point[0],:] = top2bot_colors[i]
         image[point[1]+1, point[0], :] = top2bot_colors[i]
 
-    for i in range(1, len(self.bot2top["line"])):
+    for i in range(1, len(self.bot2top["distances"])):
         point = self.bot2top["line"][i]
         image[point[1]-1, point[0], :] = bot2top_colors[i]
         image[point[1],point[0],:] = bot2top_colors[i]
@@ -119,6 +119,7 @@ def show_metrics(self, image, name):
     #cv2.setMouseCallback(name, _on_mouse_clicked_aoi, aoi_params)
     cv2.imshow(name, image)
     cv2.waitKey()
+    cv2.destroyAllWindows()
 
 
 
