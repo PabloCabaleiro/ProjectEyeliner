@@ -130,7 +130,36 @@ class ProccesClass(object):
         top_line_inv = M.dot(top_line_ones.T).T
         bot_line_inv = M.dot(bot_line_ones.T).T
 
-        return top_line_inv, bot_line_inv
+        top_line_result = []
+        start_index = int(top_line_inv[0][0])
+        for i in range(0,len(top_line_inv)):
+            point_index = int(top_line_inv[i][0])
+            current_index = i + start_index
+            if point_index == current_index:
+                top_line_result.append((current_index,int(top_line_inv[i][1])))
+            elif point_index > current_index:
+                top_line_result.append((current_index, int((top_line_inv[i-1][1] + top_line_inv[i][1])/2)))
+            elif point_index < current_index:
+                diff = i - point_index
+                top_line_result.append((current_index,int(top_line_inv[i+diff][1])))
+                i += diff
+
+        bot_line_result = []
+        start_index = int(bot_line_inv[0][0])
+        for i in range(0, len(bot_line_inv)):
+            point_index = int(bot_line_inv[i][0])
+            current_index = i + start_index
+            if point_index == current_index:
+                bot_line_result.append((current_index, int(bot_line_inv[i][1])))
+            elif point_index > current_index:
+                bot_line_result.append((current_index, int((bot_line_inv[i - 1][1] + bot_line_inv[i][1]) / 2)))
+            elif point_index < current_index:
+                diff = i - point_index
+                if i + diff < len(bot_line_inv):
+                    bot_line_result.append((current_index, int(bot_line_inv[i + diff][1])))
+                    i += diff
+
+        return top_line_result, bot_line_result
 
     def _localization(self, edge_img, enhanced_img, showImgs=False):
 
@@ -229,13 +258,13 @@ class ProccesClass(object):
                     n_rows += 1
                     continue
 
-                layer.set_top_line(top_line[left_end+1:right_end], left_end+1, right_end)
+                layer.set_top_line(top_line[left_end+1:right_end-1], left_end+1, right_end-1)
                 layer.set_gaps(gaps)
                 layer.interpolate_gaps()
 
                 # Comprobamos si es retina
                 diff = np.mean([int(np.sum(enhanced_img[(int(top_line[k]) + 10):(int(top_line[k]) + 20), k])) - int(
-                    np.sum(enhanced_img[(int(top_line[k]) - 10):int(top_line[k]), k])) for k in range(left_end + 1, right_end)])
+                    np.sum(enhanced_img[(int(top_line[k]) - 10):int(top_line[k]), k])) for k in range(left_end + 1, right_end-1)])
 
                 if (diff / mean) > self.parameters.cornea_th or n_capas == self.parameters.n_roi-1:
                     n_capas += 1
@@ -249,7 +278,7 @@ class ProccesClass(object):
                            range(int(top_line[i]), int(top_line[i]) + 30)]
                     bot_line.append(int(np.argmax(np.array(aux[5:]) < 0) + top_line[i] + 5))
 
-                layer.set_bot_line(bot_line[left_end+1:right_end])
+                layer.set_bot_line(bot_line[left_end+1:right_end-1])
                 seg.add_layer(layer)
 
             else:
