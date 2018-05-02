@@ -17,28 +17,37 @@ class NormalMetrics(object):
         distances = []
         points = []
 
-        for i in range(result.lens_start_line, result.lens_end_line+1):
+        for i in range(result.lens_start_line, result.lens_end_line):
 
             # Set as negative beacause top of image is 0 so the order in y axis changes
             if i == result.lens_start_line:
-                dy = (result.get_lens_value(i+1) - result.get_lens_value(i)) * -1
-            elif i == result.lens_end_line:
-                dy = (result.get_lens_value(i) - result.get_lens_value(i-1)) * -1
+                try:
+                    dy = (result.get_lens_value(i+1) - result.get_lens_value(i)) * -1
+                except:
+                    continue
+            elif i == result.lens_end_line-1:
+                try:
+                    dy = (result.get_lens_value(i) - result.get_lens_value(i-1)) * -1
+                except:
+                    continue
             else:
                 # We want to set dx = 1 and we know its allways gonna be 2. So div dy for 2 to normalize.
-                dy = (result.get_lens_value(i + 1) - result.get_lens_value(i - 1)) / -2
+                try:
+                    dy = (result.get_lens_value(i + 1) - result.get_lens_value(i - 1)) / -2
+                except:
+                    continue
 
             finish = False
             cornea_values = [y for _,y in result.cornea]
 
-            for j in range(min(cornea_values),max(cornea_values)+1):
+            for j in range(int(min(cornea_values)),int(max(cornea_values))):
                 lens_point = result.get_lens_point(i)
                 pos = abs(lens_point[1] - j) * dy + lens_point[0]
 
-                if pos < result.cornea_start_line or pos > result.cornea_end_line:
+                if pos < result.cornea_start_line or int(pos) >= result.cornea_end_line:
                     break
 
-                pos = round(pos)
+                pos = int(pos)
 
                 cornea_point = result.get_cornea_point(pos)
 
@@ -75,28 +84,37 @@ class NormalMetrics(object):
         distances = []
         points = []
 
-        for i in range(result.cornea_start_line, result.cornea_end_line + 1):
+        for i in range(result.cornea_start_line, result.cornea_end_line):
 
             # Set as negative beacause top of image is 0 so the order in y axis changes
             if i == result.cornea_start_line:
-                dy = (result.get_cornea_value(i + 1) - result.get_cornea_value(i))
-            elif i == result.cornea_end_line:
-                dy = (result.get_cornea_value(i) - result.get_cornea_value(i - 1))
+                try:
+                    dy = (result.get_cornea_value(i + 1) - result.get_cornea_value(i))
+                except:
+                    continue
+            elif i == result.cornea_end_line-1:
+                try:
+                    dy = (result.get_cornea_value(i) - result.get_cornea_value(i - 1))
+                except:
+                    continue
             else:
                 # We want to set dx = 1 and we know its allways gonna be 2. So div dy for 2 to normalize.
-                dy = (result.get_cornea_value(i + 1) - result.get_cornea_value(i - 1)) / 2
+                try:
+                    dy = (result.get_cornea_value(i + 1) - result.get_cornea_value(i - 1)) / 2
+                except:
+                    continue
 
             finish = False
             lens_values = [y for _, y in result.lens]
 
-            for j in range(max(lens_values), min(lens_values) - 1, -1):
+            for j in range(int(max(lens_values)), int(min(lens_values)) - 1, -1):
                 cornea_point = result.get_cornea_point(i)
                 pos = abs(cornea_point[1] - j) * dy + cornea_point[0]
 
                 if pos < result.lens_start_line or pos > result.lens_end_line:
                     break
 
-                pos = round(pos)
+                pos = int(pos)
 
                 lens_point = result.get_lens_point(pos)
 
@@ -131,7 +149,7 @@ class NormalMetrics(object):
                         "end": result.cornea_end_line, "line": result.cornea}
 
     def show(self, img):
-        utils.show_metrics(self,img)
+        utils.show_metrics(self, img, "Normal Metrics")
 
 
 

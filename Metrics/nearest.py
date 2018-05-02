@@ -32,14 +32,18 @@ class NearestMetrics(object):
 
         for lens_index in range(result.lens_start_line,result.lens_end_line+1):
 
-            dist_min = {"dist": 1000, "cornea_pos": -1} #max int in pyrhon
+            dist_min = {"dist": 10000, "cornea_pos": -1} #max int in pyrhon
 
             for cornea_index in range(max(result.cornea_start_line,lens_index - int(WINDOW_SEARCH/2)),
                                       min(result.cornea_end_line+1,lens_index + int(WINDOW_SEARCH/2)),
                                       step):
 
-                lens_point = result.get_lens_point(lens_index)
-                cornea_point = result.get_cornea_point(cornea_index)
+                try:
+                    lens_point = result.get_lens_point(lens_index)
+                    cornea_point = result.get_cornea_point(cornea_index)
+                except:
+                    continue
+
                 distance = utils.get_dist(lens_point,cornea_point)
 
                 if distance < dist_min["dist"]:
@@ -50,15 +54,23 @@ class NearestMetrics(object):
 
                 if cornea_index != dist_min["cornea_pos"]:
 
-                    lens_point = result.get_lens_point(lens_index)
-                    cornea_point = result.get_cornea_point(cornea_index)
+                    try:
+                        lens_point = result.get_lens_point(lens_index)
+                        cornea_point = result.get_cornea_point(cornea_index)
+                    except:
+                        continue
+
                     distance = utils.get_dist(lens_point, cornea_point)
 
                     if distance < dist_min["dist"]:
                         dist_min = {"dist": distance, "cornea_pos": cornea_index}
 
-            distances.append(dist_min["dist"])
-            points.append(result.get_cornea_point(dist_min["cornea_pos"]))
+            if dist_min["cornea_pos"] == -1:
+                distances.append(-1)
+                points.append(None)
+            else:
+                distances.append(dist_min["dist"])
+                points.append(result.get_cornea_point(dist_min["cornea_pos"]))
 
         self.top2bot = {"distances": distances, "points": points, "start": result.lens_start_line, "end": result.lens_end_line, "line": result.lens}
 
@@ -71,14 +83,18 @@ class NearestMetrics(object):
 
         for cornea_index in range(result.cornea_start_line, result.cornea_end_line + 1):
 
-            dist_min = {"dist": 1000, "lens_pos": -1}  # max int in pyrhon
+            dist_min = {"dist": 10000, "lens_pos": -1}  # max int in pyrhon
 
             for lens_index in range(max(result.lens_start_line, cornea_index - int(WINDOW_SEARCH / 2)),
                                       min(result.lens_end_line + 1, cornea_index + int(WINDOW_SEARCH / 2)),
                                       step):
 
-                cornea_point = result.get_cornea_point(cornea_index)
-                lens_point = result.get_lens_point(lens_index)
+                try:
+                    cornea_point = result.get_cornea_point(cornea_index)
+                    lens_point = result.get_lens_point(lens_index)
+                except:
+                    continue
+
                 distance = utils.get_dist(cornea_point, lens_point)
 
                 if distance < dist_min["dist"]:
@@ -90,18 +106,28 @@ class NearestMetrics(object):
 
                 if lens_index != dist_min["lens_pos"]:
 
-                    cornea_point = result.get_cornea_point(cornea_index)
-                    lens_point = result.get_lens_point(lens_index)
+                    try:
+                        cornea_point = result.get_cornea_point(cornea_index)
+                        lens_point = result.get_lens_point(lens_index)
+                    except:
+                        continue
+
                     distance = utils.get_dist(cornea_point, lens_point)
 
                     if distance < dist_min["dist"]:
                         dist_min = {"dist": distance, "lens_pos": lens_index}
 
-            distances.append(dist_min["dist"])
-            points.append(result.get_lens_point(dist_min["lens_pos"]))
+
+
+            if dist_min["lens_pos"] == -1:
+                distances.append(-1)
+                points.append(None)
+            else:
+                distances.append(dist_min["dist"])
+                points.append(result.get_lens_point(dist_min["lens_pos"]))
 
 
         self.bot2top = {"distances": distances, "points": points, "start": result.cornea_start_line, "end": result.cornea_end_line, "line": result.cornea}
 
     def show(self, image):
-        utils.show_metrics(image)
+        utils.show_metrics(self, image, "Nearest Metrics")

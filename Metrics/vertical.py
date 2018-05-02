@@ -20,8 +20,11 @@ class VerticalMetrics(object):
         points = []
         for i in range(result.lens_start_line, result.lens_end_line + 1):
             if i >= result.cornea_start_line and i <= result.cornea_end_line:
-                distances.append(result.get_cornea_value(i)-result.get_lens_value(i))
-                points.append(result.get_cornea_point(i))
+                try:
+                    distances.append(result.get_cornea_value(i)-result.get_lens_value(i))
+                    points.append(result.get_cornea_point(i))
+                except:
+                    continue
             else:
                 distances.append(-1)
                 points.append(None)
@@ -32,13 +35,17 @@ class VerticalMetrics(object):
         points = []
         for i in range(result.cornea_start_line, result.cornea_end_line + 1):
             if i >= result.lens_start_line and i <= result.lens_end_line:
-                distances.append(result.get_cornea_value(i)-result.get_lens_value(i))
-                points.append(result.get_lens_point(i))
+                try:
+                    distances.append(result.get_cornea_value(i)-result.get_lens_value(i))
+                    points.append(result.get_lens_point(i))
+                except:
+                    continue
             else:
                 distances.append(-1)
                 points.append(None)
+
         self.bot2top = {"distances": distances, "points": points, "start": result.cornea_start_line, "end": result.cornea_end_line, "line": result.cornea}
 
 
     def show(self, image):
-        utils.show_metrics(self,image)
+        utils.show_metrics(self, image, "Vertical Metrics")
