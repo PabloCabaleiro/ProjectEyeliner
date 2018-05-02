@@ -5,6 +5,7 @@ from Metrics.metrics import MetricsClass
 import time
 
 def main(verbose):
+
     parameters = ParameterManagerClass() #default
 
     image_list, names_list = _read_images()
@@ -17,7 +18,6 @@ def main(verbose):
         result = PipeClass(parameters, verbose=verbose).run(image_list[i])
 
         if result.has_lens:
-            result.show(image_list[i])
             metrics = MetricsClass(result, verbose=verbose)
             metrics.show_distances(image_list[i])
 
