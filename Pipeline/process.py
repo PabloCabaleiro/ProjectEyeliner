@@ -130,34 +130,34 @@ class ProccesClass(object):
         top_line_inv = M.dot(top_line_ones.T).T
         bot_line_inv = M.dot(bot_line_ones.T).T
 
+        return top_line_inv, bot_line_inv
+
+    def fpoints2ipoints(self, top_line_inv, bot_line_inv):
+
         top_line_result = []
         start_index = int(top_line_inv[0][0])
+        current_index = start_index
         for i in range(0,len(top_line_inv)):
             point_index = int(top_line_inv[i][0])
-            current_index = i + start_index
             if point_index == current_index:
                 top_line_result.append((current_index,int(top_line_inv[i][1])))
+                current_index += 1
             elif point_index > current_index:
                 top_line_result.append((current_index, int((top_line_inv[i-1][1] + top_line_inv[i][1])/2)))
-            elif point_index < current_index:
-                diff = i - point_index
-                top_line_result.append((current_index,int(top_line_inv[i+diff][1])))
-                i += diff
+                current_index += 1
+
 
         bot_line_result = []
         start_index = int(bot_line_inv[0][0])
+        current_index = start_index
         for i in range(0, len(bot_line_inv)):
             point_index = int(bot_line_inv[i][0])
-            current_index = i + start_index
             if point_index == current_index:
                 bot_line_result.append((current_index, int(bot_line_inv[i][1])))
+                current_index += 1
             elif point_index > current_index:
                 bot_line_result.append((current_index, int((bot_line_inv[i - 1][1] + bot_line_inv[i][1]) / 2)))
-            elif point_index < current_index:
-                diff = i - point_index
-                if i + diff < len(bot_line_inv):
-                    bot_line_result.append((current_index, int(bot_line_inv[i + diff][1])))
-                    i += diff
+                current_index += 1
 
         return top_line_result, bot_line_result
 
@@ -309,5 +309,6 @@ class ProccesClass(object):
 
         if has_lens:
             top_line, bot_line = self._rotate_back(top_line,bot_line, rotation_matrix)
+            top_line, bot_line = self.fpoints2ipoints(top_line, bot_line)
 
         return ResultClass(top_line,bot_line,has_lens)
