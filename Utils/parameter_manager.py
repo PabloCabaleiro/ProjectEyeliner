@@ -8,7 +8,7 @@ MAX_DIST_TO_ROI_DEFAULT = 20            # Distancia máxima a la línea marcada 
 LOCALIZATION_TOP_WINDOW_DEFAULT = 10 # Ventana de movimiento entre píxeles colindantes de un borde hacia arriba
 LOCALIZATION_BOT_WINDOW_DEFAULT = 10 # Ventana de movimiento entre píxeles colindantes de un borde hacia abajo
 #Detección de capas
-MIN_DIST_BETWEEN_ROI_RATE = 0.05      # Distancia mínima entre capas
+MIN_DIST_BETWEEN_ROI_RATE = 0.1      # Distancia mínima entre capas
 ROI_TH_DEFAULT = 4000          # Umbral de diferencia entre filas para ser la aproximación de una capa
 EDGE_WIDTH_DEFAULT = 10        # Tamaño aproximado del borde completo desde el límite superior al inferior\
 SAMPLE_WINDOW_DEFAULT = 10       # Tamaño ventana para el estudio de las intensidades anteriores y posteriores a un borde
