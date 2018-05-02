@@ -52,11 +52,12 @@ def show_validations(list_names, list_images):
             cv2.waitKey()
 
 def distances_to_color(distances):
+    clean_distances = [i for i in distances if i> -1]
     max_dist = max(distances)
-    min_dist = min(distances)
+    min_dist = min(clean_distances)
     colors = []
-    mean_dist = np.mean(distances)
-    dist_range = (max_dist-min_dist)
+    mean_dist = np.mean(clean_distances)
+    dist_range = (max_dist - min_dist)
     norm_dist = []
 
     for i in range(0, len(distances)):
@@ -69,25 +70,25 @@ def distances_to_color(distances):
         if distances[i] == -1:
             colors.append((0,0,0))
         elif norm_dist[i] > 0.9:
-            colors.append((0, 1, 0))
+            colors.append((0, 255, 0))
         elif norm_dist[i] > 0.8:
-            colors.append((0.4, 1, 0.2))
+            colors.append((50, 255, 100))
         elif norm_dist[i] > 0.7:
-            colors.append((0.6, 1, 0.2))
+            colors.append((50, 255, 150))
         elif norm_dist[i] > 0.6:
-            colors.append((0.8, 1, 0.2))
+            colors.append((50, 255, 200))
         elif norm_dist[i] > 0.5:
-            colors.append(((1, 1, 0)))
+            colors.append(((0, 255, 255)))
         elif norm_dist[i] > 0.4:
-            colors.append((1, 0.8, 0))
+            colors.append((0, 200, 255))
         elif norm_dist[i] > 0.3:
-            colors.append((1, 0.6, 0.2))
+            colors.append((50, 150, 255))
         elif norm_dist[i] > 0.2:
-            colors.append((1, 0.4, 0))
+            colors.append((0, 100, 255))
         elif norm_dist[i] > 0.1:
-            colors.append((1, 0.2, 0))
+            colors.append((0, 50, 255))
         elif norm_dist[i] >= 0:
-            colors.append((1, 0, 0))
+            colors.append((0, 0, 255))
     return colors
 
 
@@ -100,16 +101,24 @@ def show_metrics(self, image, name):
                       bot2top_line = self.bot2top["line"], bot2top_points = self.bot2top["points"], bot2top_start = self.top2bot["start"], bot2top_end = self.top2bot["end"],
                       image=image)
 
+
+    for i in range(1, len(self.top2bot["line"])):
+        point = self.top2bot["line"][i]
+        image[point[1]-1, point[0], :] = top2bot_colors[i]
+        image[point[1],point[0],:] = top2bot_colors[i]
+        image[point[1]+1, point[0], :] = top2bot_colors[i]
+
+    for i in range(1, len(self.bot2top["line"])):
+        point = self.bot2top["line"][i]
+        image[point[1]-1, point[0], :] = bot2top_colors[i]
+        image[point[1],point[0],:] = bot2top_colors[i]
+        image[point[1]+1, point[0], :] = bot2top_colors[i]
+
+
     cv2.namedWindow(name)
-    cv2.setMouseCallback(name, _on_mouse_clicked_aoi, aoi_params)
-
-    for i in range(1,len(self.top2bot["line"])):
-        for i in range(1, len(self.top2bot["line"])):
-            cv2.line(image, self.top2bot["line"][i - 1], self.top2bot["line"][i], top2bot_colors[i])
-
-    for i in range(1,len(self.bot2top["line"])):
-        for i in range(1, len(self.bot2top["line"])):
-            cv2.line(image, self.bot2top["line"][i - 1], self.bot2top["line"][i], bot2top_colors[i])
+    #cv2.setMouseCallback(name, _on_mouse_clicked_aoi, aoi_params)
+    cv2.imshow(name, image)
+    cv2.waitKey()
 
 
 
@@ -127,9 +136,5 @@ def _on_mouse_clicked_aoi(event, x, y, flags, aoi_params):
             if aoi_params["bot2top_line"][pos][1] == y:
                 cv2.line(img_copy, aoi_params["bot2top_line"][pos], aoi_params["bot2top_points"][pos])
 
-
-
-
-    l
 
     cv2 .imshow("aoi_window", img_copy)
