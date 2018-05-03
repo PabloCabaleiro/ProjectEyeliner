@@ -39,9 +39,9 @@ class NormalMetrics(object):
 
             finish = False
             cornea_values = [y for _,y in result.cornea]
+            lens_point = result.get_lens_point(i)
 
             for j in range(int(min(cornea_values)),int(max(cornea_values))):
-                lens_point = result.get_lens_point(i)
                 pos = abs(lens_point[1] - j) * dy + lens_point[0]
 
                 if pos < result.cornea_start_line or int(pos) >= result.cornea_end_line:
