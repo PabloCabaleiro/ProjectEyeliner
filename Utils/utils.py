@@ -98,20 +98,24 @@ def show_metrics(self, image, name):
     bot2top_colors = distances_to_color(self.bot2top["distances"])
 
     aoi_params = dict(top2bot_line = self.top2bot["line"], top2bot_points = self.top2bot["points"],  top2bot_start = self.top2bot["start"], top2bot_end = self.top2bot["end"], top2bot_dist = self.top2bot["distances"],
-                      bot2top_line = self.bot2top["line"], bot2top_points = self.bot2top["points"], bot2top_start = self.top2bot["start"], bot2top_end = self.top2bot["end"], bot2top_dist = self.bot2top["distances"],
+                      bot2top_line = self.bot2top["line"], bot2top_points = self.bot2top["points"], bot2top_start = self.bot2top["start"], bot2top_end = self.bot2top["end"], bot2top_dist = self.bot2top["distances"],
                       image=image, name = name)
 
     for i in range(1, len(self.top2bot["distances"])):
         point = self.top2bot["line"][i]
+        image[point[1]-2, point[0], :] = top2bot_colors[i]
         image[point[1]-1, point[0], :] = top2bot_colors[i]
         image[point[1],point[0],:] = top2bot_colors[i]
         image[point[1]+1, point[0], :] = top2bot_colors[i]
+        image[point[1]+2, point[0], :] = top2bot_colors[i]
 
     for i in range(1, len(self.bot2top["distances"])):
         point = self.bot2top["line"][i]
+        image[point[1]-2, point[0], :] = bot2top_colors[i]
         image[point[1]-1, point[0], :] = bot2top_colors[i]
         image[point[1],point[0],:] = bot2top_colors[i]
         image[point[1]+1, point[0], :] = bot2top_colors[i]
+        image[point[1]+2, point[0], :] = bot2top_colors[i]
 
 
     cv2.namedWindow(name)
@@ -129,13 +133,13 @@ def _on_mouse_clicked_aoi(event, x, y, flags, aoi_params):
     if event == cv2.EVENT_LBUTTONDOWN:
         if x >= aoi_params["top2bot_start"] and x <= aoi_params["top2bot_end"]:
             pos = int(x - aoi_params["top2bot_start"])
-            if y-3 < aoi_params["top2bot_line"][pos][1] < y+3:
+            if y-5 < aoi_params["top2bot_line"][pos][1] < y+5:
                 cv2.line(img_copy, aoi_params["top2bot_line"][pos], aoi_params["top2bot_points"][pos], (255,255,0))
                 print_text(img_copy,str(aoi_params["top2bot_dist"][pos]))
                 cv2.imshow(aoi_params["name"], img_copy)
-        if x>= aoi_params["bot2top_start"] and x <=aoi_params["bot2top_end"]:
+        if x >= aoi_params["bot2top_start"] and x <=aoi_params["bot2top_end"]:
             pos = int(x - aoi_params["bot2top_start"])
-            if y-3 < aoi_params["bot2top_line"][pos][1] < y+3:
+            if y-5 < aoi_params["bot2top_line"][pos][1] < y+5:
                 cv2.line(img_copy, aoi_params["bot2top_line"][pos], aoi_params["bot2top_points"][pos],(255,255,0))
                 print_text(img_copy,str(aoi_params["bot2top_dist"][pos]))
                 cv2.imshow(aoi_params["name"], img_copy)
