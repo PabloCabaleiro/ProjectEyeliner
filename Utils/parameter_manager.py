@@ -13,6 +13,13 @@ ROI_TH_DEFAULT = 4000          # Umbral de diferencia entre filas para ser la ap
 EDGE_WIDTH_DEFAULT = 10        # Tamaño aproximado del borde completo desde el límite superior al inferior\
 SAMPLE_WINDOW_DEFAULT = 10       # Tamaño ventana para el estudio de las intensidades anteriores y posteriores a un borde
 N_ROI_DEFAULT = 3
+#Snake
+BETA_DEFAULT = 20
+ALPHA_DEFAULT = 20
+W_LINE_DEFAULT = 0
+W_EDGE_DEFAULT = -1
+GAMMA_DEFAULT = 0.1
+
 
 #############################################PREPROCCES CLASS###########################################################
 MEDIAN_VALUE_DEFAULT = 3
@@ -42,11 +49,17 @@ class ParameterManagerClass(object):
     n_bins = N_BINS_DEFAULT
     enhance_function = ENHANCE_FUNCTION_DEFAULT
     n_roi = N_ROI_DEFAULT
+    beta = BETA_DEFAULT
+    alpha = ALPHA_DEFAULT
+    w_line = W_LINE_DEFAULT
+    w_edge = W_EDGE_DEFAULT
+    gamma = GAMMA_DEFAULT
 
 
-    def __init__(self, retina_th = None, max_dist_top = None, max_dist_bot = None, median_value = None, sigma_color = None,
+    def __init__(self, max_dist_top = None, max_dist_bot = None, median_value = None, sigma_color = None,
                  sigma_space = None, bilateral_diameter = None, n_bins = None, enhance_function = None, min_dist_roi = None,
-                 roi_th = None, cornea_th = None, border_size = None, max_dist_to_roi = None, n_roi = None, sample_size= None):
+                 roi_th = None, cornea_th = None, border_size = None, max_dist_to_roi = None, n_roi = None, sample_size= None,
+                 alpha = None, beta = None, w_line = None, w_edge = None, gamma = None):
 
         if max_dist_top:
             self.localization_top_window = max_dist_top
@@ -76,10 +89,18 @@ class ParameterManagerClass(object):
             self.max_dist_to_roi = max_dist_to_roi
         if n_roi:
             self.n_roi = n_roi
+        if alpha:
+            self.alpha = alpha
+        if beta:
+            self.beta = beta
+        if w_edge:
+            self.w_edge = w_edge
+        if w_line:
+            self.w_line = w_line
+        if gamma:
+            self.gamma = gamma
         if sample_size:
             self.sample_window = sample_size
-
-
 
         h = blake2b(digest_size=20)
         config_id = str(self.get_config()).encode('utf-8')
@@ -103,5 +124,10 @@ class ParameterManagerClass(object):
             "EDGE_WIDTH": self.edge_width,
             "MAX_DIST_TO_ROI": self.max_dist_to_roi,
             "N_ROI": self.n_roi,
-            "SAMPLE_WINDOW": self.sample_window
+            "SAMPLE_WINDOW": self.sample_window,
+            "ALPHA": self.alpha,
+            "BETA": self.beta,
+            "W_LINE": self.w_line,
+            "W_EDGE": self.w_edge,
+            "GAMMA": self.gamma,
         }

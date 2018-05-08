@@ -4,7 +4,7 @@ import numpy as np
 from Objects.ImageSegmentationClass import ImageSegmentationClass
 from Objects.LayerClass import LayerClass
 from Objects.ResultClass import ResultClass
-
+from skimage.segmentation import active_contour
 
 class ProccesClass(object):
 
@@ -293,6 +293,16 @@ class ProccesClass(object):
 
         return seg
 
+    def snake(self, image, lens, cornea):
+        points_lens = np.array([[int(x),int(y)] for x,y in lens])
+        points_cornea = np.array([[int(x),int(y)] for x,y in cornea])
+        snake_lens = active_contour(image, points_lens, alpha= self.parameters.alpha, beta= self.parameters.beta, w_line= self.parameters.w_line,
+                                    w_edge= self.parameters.w_edge, gamma= self.parameters.gamma, bc="fixed")
+        snake_cornea = active_contour(image, points_cornea, alpha= self.parameters.alpha, beta= self.parameters.beta, w_line= self.parameters.w_line,
+                                      w_edge= self.parameters.w_edge, gamma=self.parameters.gamma, bc="fixed")
+
+        return snake_lens, snake_cornea
+
     def pipeline(self, filter_img, enhanced_img, rotation_matrix):
         self.filter_img = filter_img
         self.height, self.width, _ = np.shape(filter_img)
@@ -311,4 +321,7 @@ class ProccesClass(object):
             top_line, bot_line = self._rotate_back(top_line,bot_line, rotation_matrix)
             top_line, bot_line = self.fpoints2ipoints(top_line, bot_line)
 
-        return ResultClass(top_line,bot_line,has_lens)
+            lens_snake, cornea_snake = self.snake(edge_img, top_line, bot_line)
+            lens_snake, cornea_snake = self.fpoints2ipoints(lens_snake, cornea_snake)
+
+        return ResultClass(top_line,bot_line,has_lens), ResultClass(lens_snake, cornea_snake, has_lens)
