@@ -1,5 +1,7 @@
 import cv2
 from Utils import utils
+import os.path
+
 
 class ValidateData(object):
 
@@ -11,44 +13,62 @@ class ValidateData(object):
     def _set_validation_points(self, images_list, names_list):
 
         for i in range(0,len(images_list)):
-            self._create_contour_validation(images_list[i],names_list[i])
+
+            if not os.path.isfile(utils.VAL_PATH + names_list[i].split("\\")[1].split(".")[0] + '.txt'):
+                self._create_contour_validation(images_list[i],names_list[i])
+
+    def load_image(self, name, image, aoi_params):
+
+        image = image * 1
+
+        font = cv2.FONT_HERSHEY_PLAIN
+        if aoi_params["line"] == "S":
+            cv2.putText(image, 'Press space to change line', (10, 20), font, 1, (255, 255, 255), 2, cv2.LINE_AA)
+        else:
+            cv2.putText(image, 'Press space to save image', (10, 20), font, 1, (255, 255, 255), 2, cv2.LINE_AA)
+        cv2.putText(image, 'Press D to delete the last point', (10, 40), font, 1, (255, 255, 255), 2, cv2.LINE_AA)
+        cv2.putText(image, 'Press 2 to mark image with no lens', (10, 60), font, 1, (255, 255, 255), 2, cv2.LINE_AA)
+
+        l_sup = list(aoi_params["points_s"])
+        for i in range(1, len(l_sup)):
+            cv2.line(image, l_sup[i - 1], l_sup[i], (255, 255, 0))
+
+        if aoi_params["line"] == "i":
+            l_inf = list(aoi_params["points_i"])
+            for i in range(1, len(l_inf)):
+                cv2.line(image, l_inf[i - 1], l_inf[i], (0, 255, 0))
+
+        cv2.imshow(name, image)
 
     def _create_contour_validation(self, image, name):
-        aoi_params = dict(line = 's', points_s=[], points_i = [], image=image)
+        aoi_params = dict(line = 's', points_s=[], points_i = [], image=image, name= name)
 
-        cv2.namedWindow("aoi_window")
-        cv2.setMouseCallback("aoi_window", self._on_mouse_clicked_aoi, aoi_params)
+        cv2.namedWindow(name)
+        cv2.moveWindow(name, 40,30)
+        cv2.setMouseCallback(name, self._on_mouse_clicked_aoi, aoi_params)
         stop = False
         no_lens = False
 
         while not stop:
-            cv2.imshow("aoi_window", image)
+
+            self.load_image(name, image, aoi_params)
             k = cv2.waitKey() & 0xff
+
             if (k == ord('\n') or k == ord(' ')) and aoi_params["line"]=='s':
                 aoi_params["line"] = 'i'
-                l_sup = list(aoi_params["points_s"])
-                for i in range(1, len(l_sup)):
-                    cv2.line(image, l_sup[i - 1], l_sup[i], (255, 255, 0))
+                list(aoi_params["points_s"])
+
             elif k == ord('\n') or k == ord(' '):
                 stop = True
+
             elif k == ord("d") or k == ord("D"):
-
-                if len(list(aoi_params["points_"+aoi_params["line"]]))>0:
-                    aoi_params["points_"+aoi_params["line"]] = aoi_params["points_"+aoi_params["line"]][:-1]
-
-                l_sup = list(aoi_params["points_s"])
-                for i in range(1, len(l_sup)):
-                    cv2.line(image, l_sup[i - 1], l_sup[i], (255, 255, 0))
-
-                if aoi_params["line"] == "i":
-                    l_inf = list(aoi_params["points_i"])
-                    for i in range(1, len(l_inf)):
-                        cv2.line(image, l_inf[i - 1], l_inf[i], (0, 255, 0))
+                aoi_params["points_"+aoi_params["line"]] = aoi_params["points_"+aoi_params["line"]][:-1]
 
             elif k == ord("2"):
                 no_lens = True
                 stop = True
 
+        cv2.destroyWindow(name)
         s_list = list(aoi_params["points_s"])
         i_list = list(aoi_params["points_i"])
 
@@ -78,20 +98,11 @@ class ValidateData(object):
             l.append((x, y))
             aoi_params["points_"+aoi_params["line"]] = l
 
-        l_inf = list(aoi_params["points_i"])
-        for i in range(1, len(l_inf)):
-            cv2.line(img_copy, l_inf[i - 1], l_inf[i], (0, 255, 0))
-
-        l_sup = list(aoi_params["points_s"])
-        for i in range(1,len(l_sup)):
-            cv2.line(img_copy, l_sup[i-1], l_sup[i], (255, 255, 0))
-
-        cv2 .imshow("aoi_window", img_copy)
+        self.load_image(aoi_params["name"], img_copy, aoi_params)
 
     def create_validation(self):
 
         image_list, names_list = utils._read_images()
-
         self._set_validation_points(image_list,names_list)
 
 
