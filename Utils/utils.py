@@ -145,6 +145,35 @@ def _on_mouse_clicked_aoi(event, x, y, flags, aoi_params):
                 cv2.imshow(aoi_params["name"], img_copy)
 
 
+def fpoints2ipoints(top_line_inv, bot_line_inv):
+
+    top_line_result = []
+    start_index = int(top_line_inv[0][0])
+    current_index = start_index
+    for i in range(0,len(top_line_inv)):
+        point_index = int(top_line_inv[i][0])
+        if point_index == current_index:
+            top_line_result.append((current_index,int(top_line_inv[i][1])))
+            current_index += 1
+        elif point_index > current_index:
+            top_line_result.append((current_index, int((top_line_inv[i-1][1] + top_line_inv[i][1])/2)))
+            current_index += 1
+
+
+    bot_line_result = []
+    start_index = int(bot_line_inv[0][0])
+    current_index = start_index
+    for i in range(0, len(bot_line_inv)):
+        point_index = int(bot_line_inv[i][0])
+        if point_index == current_index:
+            bot_line_result.append((current_index, int(bot_line_inv[i][1])))
+            current_index += 1
+        elif point_index > current_index:
+            bot_line_result.append((current_index, int((bot_line_inv[i - 1][1] + bot_line_inv[i][1]) / 2)))
+            current_index += 1
+
+    return top_line_result, bot_line_result
+
 def print_text(image, text):
     font = cv2.FONT_HERSHEY_SIMPLEX
     bottomLeftCornerOfText = (30, 30)

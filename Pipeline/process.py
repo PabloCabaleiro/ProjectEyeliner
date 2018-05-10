@@ -5,6 +5,7 @@ from Objects.ImageSegmentationClass import ImageSegmentationClass
 from Objects.LayerClass import LayerClass
 from Objects.ResultClass import ResultClass
 from skimage.segmentation import active_contour
+from Utils import utils
 
 class ProccesClass(object):
 
@@ -131,35 +132,6 @@ class ProccesClass(object):
         bot_line_inv = M.dot(bot_line_ones.T).T
 
         return top_line_inv, bot_line_inv
-
-    def fpoints2ipoints(self, top_line_inv, bot_line_inv):
-
-        top_line_result = []
-        start_index = int(top_line_inv[0][0])
-        current_index = start_index
-        for i in range(0,len(top_line_inv)):
-            point_index = int(top_line_inv[i][0])
-            if point_index == current_index:
-                top_line_result.append((current_index,int(top_line_inv[i][1])))
-                current_index += 1
-            elif point_index > current_index:
-                top_line_result.append((current_index, int((top_line_inv[i-1][1] + top_line_inv[i][1])/2)))
-                current_index += 1
-
-
-        bot_line_result = []
-        start_index = int(bot_line_inv[0][0])
-        current_index = start_index
-        for i in range(0, len(bot_line_inv)):
-            point_index = int(bot_line_inv[i][0])
-            if point_index == current_index:
-                bot_line_result.append((current_index, int(bot_line_inv[i][1])))
-                current_index += 1
-            elif point_index > current_index:
-                bot_line_result.append((current_index, int((bot_line_inv[i - 1][1] + bot_line_inv[i][1]) / 2)))
-                current_index += 1
-
-        return top_line_result, bot_line_result
 
     def _localization(self, edge_img, enhanced_img, showImgs=False):
 
@@ -293,16 +265,6 @@ class ProccesClass(object):
 
         return seg
 
-    def snake(self, image, lens, cornea):
-        points_lens = np.array([[int(x),int(y)] for x,y in lens])
-        points_cornea = np.array([[int(x),int(y)] for x,y in cornea])
-        snake_lens = active_contour(image, points_lens, alpha= self.parameters.alpha, beta= self.parameters.beta, w_line= self.parameters.w_line,
-                                    w_edge= self.parameters.w_edge, gamma= self.parameters.gamma, bc="fixed")
-        snake_cornea = active_contour(image, points_cornea, alpha= self.parameters.alpha, beta= self.parameters.beta, w_line= self.parameters.w_line,
-                                      w_edge= self.parameters.w_edge, gamma=self.parameters.gamma, bc="fixed")
-
-        return snake_lens, snake_cornea
-
     def pipeline(self, filter_img, enhanced_img, rotation_matrix):
         self.filter_img = filter_img
         self.height, self.width, _ = np.shape(filter_img)
@@ -319,9 +281,6 @@ class ProccesClass(object):
 
         if has_lens:
             top_line, bot_line = self._rotate_back(top_line,bot_line, rotation_matrix)
-            top_line, bot_line = self.fpoints2ipoints(top_line, bot_line)
+            top_line, bot_line = utils.fpoints2ipoints(top_line, bot_line)
 
-            lens_snake, cornea_snake = self.snake(edge_img, top_line, bot_line)
-            lens_snake, cornea_snake = self.fpoints2ipoints(lens_snake, cornea_snake)
-
-        return ResultClass(top_line,bot_line,has_lens), ResultClass(lens_snake, cornea_snake, has_lens)
+        return ResultClass(top_line,bot_line,has_lens)
