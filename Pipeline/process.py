@@ -20,10 +20,25 @@ class ProccesClass(object):
 
     def _get_nearest_edge(self, edge_image, column, start_position, previous_line):
 
-        for j in range(max(start_position-self.parameters.localization_top_window,previous_line),start_position+self.parameters.localization_bot_window):
-            if edge_image[j, column] > 0:
-                return j
-        return -1
+        min_pos = start_position - self.parameters.localization_top_window
+        max_pos = start_position + self.parameters.localization_bot_window
+
+
+        diff = [int(edge_image[c,column]) - int(edge_image[c-1,column]) for c in range(min_pos + 1, max_pos)]
+        ii = [min_pos + i for i in range(0,len(diff)) if diff[i] == 255]
+
+        if len(ii) == 0:
+            return -1
+
+        min = max_pos
+
+        for i in ii:
+            if abs(i-start_position) < min:
+                min = abs(i-start_position)
+                result = i
+
+        return result
+
 
     def _pre_get_masks(self):
         filter_img = cv2.GaussianBlur(self.filter_img, (3, 3), 0)
@@ -261,7 +276,7 @@ class ProccesClass(object):
             n_rows += 1
 
         if showImgs:
-            seg.show(self.filter_img)
+            seg.show(edge_img)
 
         return seg
 
@@ -275,7 +290,7 @@ class ProccesClass(object):
 
         edge_img = cv2.bitwise_or(edge_img, edge_img, mask=self.mask)
 
-        segmentation = self._localization(edge_img, enhanced_img, showImgs=False)
+        segmentation = self._localization(edge_img, enhanced_img, showImgs=True)
 
         top_line, bot_line, has_lens = segmentation.get_result()
 
