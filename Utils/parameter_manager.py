@@ -2,23 +2,23 @@ from hashlib import blake2b
 
 ##############################################PROCCES CLASS#############################################################
 #Detección de ROI
-CORNEA_TH_DEFAULT = 24           # Diferencia de intensidad umbral para ser cornea entre los vectores de SAMPLE_SIZE
-MAX_DIST_TO_ROI_DEFAULT = 20            # Distancia máxima a la línea marcada como ROI para ser punto de inicio
+CORNEA_TH_DEFAULT = 24               # Diferencia de intensidad umbral para ser cornea entre los vectores de SAMPLE_SIZE
+MAX_DIST_TO_ROI_DEFAULT = 10         # Distancia máxima a la línea marcada como ROI para ser punto de inicio
 #Aproximación al borde
 LOCALIZATION_TOP_WINDOW_DEFAULT = 10 # Ventana de movimiento entre píxeles colindantes de un borde hacia arriba
 LOCALIZATION_BOT_WINDOW_DEFAULT = 10 # Ventana de movimiento entre píxeles colindantes de un borde hacia abajo
 #Detección de capas
 MIN_DIST_BETWEEN_ROI_RATE = 0.1      # Distancia mínima entre capas
-ROI_TH_DEFAULT = 4000          # Umbral de diferencia entre filas para ser la aproximación de una capa
-EDGE_WIDTH_DEFAULT = 10        # Tamaño aproximado del borde completo desde el límite superior al inferior\
-SAMPLE_WINDOW_DEFAULT = 10       # Tamaño ventana para el estudio de las intensidades anteriores y posteriores a un borde
+ROI_TH_DEFAULT = 4000                # Umbral de diferencia entre filas para ser la aproximación de una capa
+EDGE_WIDTH_DEFAULT = 10              # Tamaño aproximado del borde completo desde el límite superior al inferior\
+SAMPLE_WINDOW_DEFAULT = 10           # Tamaño ventana para el estudio de las intensidades anteriores y posteriores a un borde
 N_ROI_DEFAULT = 3
 #Snake
-BETA_DEFAULT = 20
-ALPHA_DEFAULT = 20
-W_LINE_DEFAULT = 0
-W_EDGE_DEFAULT = -1
-GAMMA_DEFAULT = 0.1
+BETA_DEFAULT = 20                    # Snake length shape parameter. Higher values makes snake contract faster.
+ALPHA_DEFAULT = 50                   # Snake smoothness shape parameter. Higher values makes snake smoother.
+W_LINE_DEFAULT = 0                   # Controls attraction to brightness. Use negative values to attract to dark regions.
+W_EDGE_DEFAULT = 2                   # Controls attraction to edges. Use negative values to repel snake from edges
+GAMMA_DEFAULT = 0.1                  # Explicit time stepping parameter.
 
 
 #############################################PREPROCCES CLASS###########################################################
@@ -29,7 +29,6 @@ BILATERAL_SIGMA_SPACE_DEFAULT = 150 # Filter sigma in the coordinate space. A la
 # pixels will influence each other as long as their colors are close enough (see sigmaColor ).
 BILATERAL_DIAMETER_DEFAULT = 11      # Diameter of each pixel neighborhood that is used during filtering.
 N_BINS_DEFAULT = 30                  # Bins of orientations to the hog function
-ENHANCE_FUNCTION_DEFAULT = "top_hat" # Enhance function
 
 class ParameterManagerClass(object):
 
@@ -47,7 +46,6 @@ class ParameterManagerClass(object):
     sigma_space = BILATERAL_SIGMA_SPACE_DEFAULT
     bilateral_diameter = BILATERAL_DIAMETER_DEFAULT
     n_bins = N_BINS_DEFAULT
-    enhance_function = ENHANCE_FUNCTION_DEFAULT
     n_roi = N_ROI_DEFAULT
     beta = BETA_DEFAULT
     alpha = ALPHA_DEFAULT
@@ -57,7 +55,7 @@ class ParameterManagerClass(object):
 
 
     def __init__(self, max_dist_top = None, max_dist_bot = None, median_value = None, sigma_color = None,
-                 sigma_space = None, bilateral_diameter = None, n_bins = None, enhance_function = None, min_dist_roi = None,
+                 sigma_space = None, bilateral_diameter = None, n_bins = None, min_dist_roi = None,
                  roi_th = None, cornea_th = None, border_size = None, max_dist_to_roi = None, n_roi = None, sample_size= None,
                  alpha = None, beta = None, w_line = None, w_edge = None, gamma = None):
 
@@ -75,8 +73,6 @@ class ParameterManagerClass(object):
             self.bilateral_diameter = bilateral_diameter
         if n_bins:
             self.n_bins = n_bins
-        if enhance_function:
-            self.enhance_function = enhance_function
         if min_dist_roi:
             self.min_dist_between_roi = min_dist_roi
         if roi_th:
@@ -118,7 +114,6 @@ class ParameterManagerClass(object):
             "SIGMA_SPACE": self.sigma_space,
             "BILATERAL_DIAMETER": self.bilateral_diameter,
             "N_BINS": self.n_bins,
-            "ENHANCE_FUNCTION": self.enhance_function,
             "MIN_DIST_BETWEEN_ROI": self.min_dist_between_roi,
             "ROI_TH": self.roi_th,
             "EDGE_WIDTH": self.edge_width,

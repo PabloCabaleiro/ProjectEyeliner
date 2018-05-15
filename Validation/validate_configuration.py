@@ -1,5 +1,6 @@
 from Utils import utils
 from Pipeline.Pipe import PipeClass
+from scipy import stats
 
 class ValidateConfiguration(object):
 
@@ -10,6 +11,10 @@ class ValidateConfiguration(object):
         npv = tn / (tn + fn) # negative preditive value
         acc = (tp + tn) / (tp + tn + fp + fn) # accuracy
         return acc, tpr, tnr, ppv, npv
+
+    def signification(self, result, result_snake, p_value = 0.1):
+        h, p_value = stats.kruskal(result["MSE"],result_snake["MSE"])
+        return p_value > (1 - self.p_value), p_value
 
     def _get_error(self, result, top_line, bot_line):
         # Return Mean Square Error and Mean Absolute Error
@@ -52,6 +57,7 @@ class ValidateConfiguration(object):
     def validate(self, parameters):
 
         image_list, names_list = utils._read_images()
+        mse_list = mae_list = []
 
         global_mae = global_mse = global_tp = global_tn = global_fp = global_fn = 0
         dict_data = {"CONFIG_ID": parameters.id}
@@ -64,8 +70,8 @@ class ValidateConfiguration(object):
             if result != None:
                 mse, mae, tp, tn, fp, fn = self._validate_result(result,eval_data)
 
-                dict_data["MSE_"+names_list[i]] = mse
-                dict_data["MAE_" + names_list[i]] = mae
+                mse_list.append(mse)
+                mae_list.append(mae)
                 if mae != None and mse != None:
                     global_mae += mae
                     global_mse += mse
@@ -74,8 +80,8 @@ class ValidateConfiguration(object):
                 global_fp += fp
                 global_fn += fn
             else:
-                dict_data["MSE_" + names_list[i]] = None
-                dict_data["MAE_" + names_list[i]] = None
+                mse_list.append(-1)
+                mae_list.append(-1)
 
         acc, tpr, tnr, ppv, npv = self._get_metrics(global_tp,global_tn,global_fp,global_fn)
 
@@ -84,7 +90,10 @@ class ValidateConfiguration(object):
         dict_data["TNR"] = tnr
         dict_data["PPV"] = ppv
         dict_data["NPV"] = npv
+        dict_data["MAE"] = mae_list
+        dict_data["MSE"] = mse_list
         dict_data["AVG_MAE"] = global_mae / len(image_list)
         dict_data["AVG_MSE"] = global_mse / len(image_list)
+        dict_data
 
         return dict_data
