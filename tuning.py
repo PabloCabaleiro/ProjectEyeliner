@@ -1,69 +1,68 @@
-from Utils.utils import _read_images
 from Utils.parameter_manager import ParameterManagerClass
-from Utils import utils
 from Validation.validate_configuration import ValidateConfiguration
+from Utils import utils
 import csv
-import os
+from scipy.optimize import differential_evolution
+import sys
 
-##############################################PROCCES CLASS#############################################################
-RETINA_TH_DEFAULT = [23,24,25,26,27,28]         # Diferencia de intensidad umbral para ser retina entre los vectores de SAMPLE_SIZE
-MAX_DIST_PIXELS_TOP_DEFAULT = [5,7,10,12,15] # Ventana de movimiento entre píxeles colindantes de un borde hacia arriba
-MAX_DIST_PIXELS_BOT_DEFAULT = [5,7,10,12,15] # Ventana de movimiento entre píxeles colindantes de un borde hacia abajo
+MEDIAN_LIST = [3,5,7,9]
+BILATERAL_DIAMETER = [5,7,9,11,13,15,17,19,21]
+TOP_HAT_KERNEL = [9,11,13,15,17,19,21,23,25,27,29,21,33,35]
 
-#############################################PREPROCCES CLASS###########################################################
-MEDIAN_VALUE_DEFAULT = [3,5,7,9]
-BILATERAL_SIGMA_COLOR_DEFAULT = [100,150,175,200] # Filter sigma in the color space. A larger value of the parameter means that farther
-# colors within the pixel neighborhood will be mixed together, resulting in larger areas of semi-equal color.
-BILATERAL_SIGMA_SPACE_DEFAULT = [100,150,175,200] # Filter sigma in the coordinate space. A larger value of the parameter means that farther
-# pixels will influence each other as long as their colors are close enough (see sigmaColor ).
-BILATERAL_DIAMETER_DEFAULT = [7,9,11,13,15]      # Diameter of each pixel neighborhood that is used during filtering.
-N_BINS_DEFAULT = [15, 30, 60, 90]                  # Bins of orientations to the hog function
-ENHANCE_FUNCTION_DEFAULT = ["top_hat","equalization","adaptative"] # Enhance function
 
-def generate_parameters():
-    for retina in RETINA_TH_DEFAULT:
-        for dist_top in MAX_DIST_PIXELS_TOP_DEFAULT:
-            for disb_bot in MAX_DIST_PIXELS_BOT_DEFAULT:
-                for median in MEDIAN_VALUE_DEFAULT:
-                    for sigma_color in BILATERAL_SIGMA_COLOR_DEFAULT:
-                        for sigma_space in BILATERAL_SIGMA_SPACE_DEFAULT:
-                            for diameter in BILATERAL_DIAMETER_DEFAULT:
-                                for n_bins in N_BINS_DEFAULT:
-                                    for enhance_fuunction in ENHANCE_FUNCTION_DEFAULT:
-                                        yield ParameterManagerClass(retina,dist_top,disb_bot,median,sigma_color,
-                                                                    sigma_space,diameter,n_bins,enhance_fuunction)
+def func(parameters,*data):
+    cornea_th = round(parameters[0])
+    roi_th = round(parameters[1])
+    beta = parameters[2]
+    alpha = parameters[3]
+    w_edge = parameters[4]
+    gamma = parameters[5]
+    median = MEDIAN_LIST[int(round(parameters[6]))]
+    sigma_color = round(parameters[7])
+    sigma_space = round(parameters[8])
+    bilateral_diameter = BILATERAL_DIAMETER[int(round(parameters[9]))]
+    top_hat_kernel_size = TOP_HAT_KERNEL[int(round(parameters[10]))]
+    canny_sup = round(parameters[11])
+    canny_inf = round(parameters[12])
+    canny_kernel = MEDIAN_LIST[int(round(parameters[13]))]
 
-def main():
+    parameters = ParameterManagerClass(cornea_th=cornea_th,roi_th=roi_th,beta=beta,alpha=alpha,w_edge=w_edge,gamma=gamma,median_value=median,
+                                       sigma_color=sigma_color,sigma_space=sigma_space,bilateral_diameter=bilateral_diameter,top_hat_kernel=top_hat_kernel_size,
+                                       canny_sup=canny_sup,canny_inf=canny_inf,canny_kernel=canny_kernel)
 
-    first = True
+    try:
+        data = ValidateConfiguration().validate(parameters)
+    except:
+        print("Unexpected error:", sys.exc_info()[0])
 
-    for parameters in generate_parameters():
 
-        print(parameters.id)
+    with open(utils.VAL_PATH + "result_data.csv", 'a') as csvfile:
+        writer = csv.DictWriter(csvfile, data.keys())
+        writer.writerow(data)
 
-        try:
-            with open(utils.VAL_PATH + "configuration_data.csv", 'a') as csvfile:
-                writer = csv.DictWriter(csvfile,parameters.get_config().keys())
-                if first:
-                    writer.writeheader()
-                writer.writerow(parameters.get_config())
-
-            data = ValidateConfiguration().validate(parameters)
-
-            with open(utils.VAL_PATH + "result_data.csv", 'a') as csvfile:
-                writer = csv.DictWriter(csvfile, data.keys())
-                if first:
-                    writer.writeheader()
-                writer.writerow(data)
-
-            first = False
-
-        except IOError:
-            print("I/O error")
-
+    return data["AVG_MSE"]/data["ACC"]
 
 
 
 
 if __name__ == '__main__':
-    main()
+
+    bounds = []
+    bounds.append((20,40))
+    bounds.append((2000,5000))
+    bounds.append((5,70))
+    bounds.append((5,70))
+    bounds.append((0,30))
+    bounds.append((0,5))
+    bounds.append((0,3))
+    bounds.append((100,250))
+    bounds.append((100,250))
+    bounds.append((0,8))
+    bounds.append((0,13))
+    bounds.append((40,100))
+    bounds.append((20,80))
+    bounds.append((0,3))
+
+    result = differential_evolution(func, bounds, args=[])
+    print(result.x)
+    print(result)

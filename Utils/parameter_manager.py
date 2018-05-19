@@ -2,14 +2,14 @@ from hashlib import blake2b
 
 ##############################################PROCCES CLASS#############################################################
 #Detección de ROI
-CORNEA_TH_DEFAULT = 24               # Diferencia de intensidad umbral para ser cornea entre los vectores de SAMPLE_SIZE
-MAX_DIST_TO_ROI_DEFAULT = 10         # Distancia máxima a la línea marcada como ROI para ser punto de inicio
+CORNEA_TH_DEFAULT = 30               # Diferencia de intensidad umbral para ser cornea entre los vectores de SAMPLE_SIZE
+MAX_DIST_TO_ROI_DEFAULT = 20         # Distancia máxima a la línea marcada como ROI para ser punto de inicio
 #Aproximación al borde
-LOCALIZATION_TOP_WINDOW_DEFAULT = 10 # Ventana de movimiento entre píxeles colindantes de un borde hacia arriba
-LOCALIZATION_BOT_WINDOW_DEFAULT = 10 # Ventana de movimiento entre píxeles colindantes de un borde hacia abajo
+LOCALIZATION_TOP_WINDOW_DEFAULT = 20 # Ventana de movimiento entre píxeles colindantes de un borde hacia arriba
+LOCALIZATION_BOT_WINDOW_DEFAULT = 20 # Ventana de movimiento entre píxeles colindantes de un borde hacia abajo
 #Detección de capas
-MIN_DIST_BETWEEN_ROI_RATE = 0.1      # Distancia mínima entre capas
-ROI_TH_DEFAULT = 4000                # Umbral de diferencia entre filas para ser la aproximación de una capa
+MIN_DIST_BETWEEN_ROI_RATE = 0.05          # Distancia mínima entre capas
+ROI_TH_DEFAULT = 3000                # Umbral de diferencia entre filas para ser la aproximación de una capa
 EDGE_WIDTH_DEFAULT = 10              # Tamaño aproximado del borde completo desde el límite superior al inferior\
 SAMPLE_WINDOW_DEFAULT = 10           # Tamaño ventana para el estudio de las intensidades anteriores y posteriores a un borde
 N_ROI_DEFAULT = 3
@@ -19,16 +19,20 @@ ALPHA_DEFAULT = 50                   # Snake smoothness shape parameter. Higher 
 W_LINE_DEFAULT = 0                   # Controls attraction to brightness. Use negative values to attract to dark regions.
 W_EDGE_DEFAULT = 2                   # Controls attraction to edges. Use negative values to repel snake from edges
 GAMMA_DEFAULT = 0.1                  # Explicit time stepping parameter.
-
+#Canny
+CANNY_SUP_DEFAULT = 80
+CANNY_INF_DEFAULT = 50
+CANNY_KERNER_DEFAULT = 5
 
 #############################################PREPROCCES CLASS###########################################################
-MEDIAN_VALUE_DEFAULT = 3
+MEDIAN_VALUE_DEFAULT = 5
 BILATERAL_SIGMA_COLOR_DEFAULT = 150 # Filter sigma in the color space. A larger value of the parameter means that farther
 # colors within the pixel neighborhood will be mixed together, resulting in larger areas of semi-equal color.
 BILATERAL_SIGMA_SPACE_DEFAULT = 150 # Filter sigma in the coordinate space. A larger value of the parameter means that farther
 # pixels will influence each other as long as their colors are close enough (see sigmaColor ).
 BILATERAL_DIAMETER_DEFAULT = 11      # Diameter of each pixel neighborhood that is used during filtering.
 N_BINS_DEFAULT = 30                  # Bins of orientations to the hog function
+TOP_HAT_KERNEL_SIZE = 15
 
 class ParameterManagerClass(object):
 
@@ -52,13 +56,25 @@ class ParameterManagerClass(object):
     w_line = W_LINE_DEFAULT
     w_edge = W_EDGE_DEFAULT
     gamma = GAMMA_DEFAULT
-
+    canny_sup = CANNY_SUP_DEFAULT
+    canny_inf = CANNY_INF_DEFAULT
+    canny_kernel = CANNY_KERNER_DEFAULT
+    top_hat_kernel = TOP_HAT_KERNEL_SIZE
 
     def __init__(self, max_dist_top = None, max_dist_bot = None, median_value = None, sigma_color = None,
                  sigma_space = None, bilateral_diameter = None, n_bins = None, min_dist_roi = None,
                  roi_th = None, cornea_th = None, border_size = None, max_dist_to_roi = None, n_roi = None, sample_size= None,
-                 alpha = None, beta = None, w_line = None, w_edge = None, gamma = None):
+                 alpha = None, beta = None, w_line = None, w_edge = None, gamma = None, canny_sup = None, canny_inf = None,
+                 canny_kernel = None, top_hat_kernel = None):
 
+        if top_hat_kernel:
+            self.top_hat_kernel = top_hat_kernel
+        if canny_inf:
+            self.canny_inf = canny_inf
+        if canny_sup:
+            self.canny_sup = canny_sup
+        if canny_kernel:
+            self.canny_kernel = canny_kernel
         if max_dist_top:
             self.localization_top_window = max_dist_top
         if max_dist_bot:
@@ -125,4 +141,7 @@ class ParameterManagerClass(object):
             "W_LINE": self.w_line,
             "W_EDGE": self.w_edge,
             "GAMMA": self.gamma,
+            "CANNY_SUP": self.canny_sup,
+            "CANNY_INF": self.canny_inf,
+            "CANNY_KERNEL": self.canny_kernel,
         }
