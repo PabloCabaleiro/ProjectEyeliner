@@ -6,6 +6,8 @@ import numpy as np
 
 VAL_PATH = "validation-data\\"
 IMG_PATH = "imgenestfm\\*"
+PROBLEMS_PATH = "problemas\\*"
+
 
 def _read_images():
     image_list = []

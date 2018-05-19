@@ -22,18 +22,20 @@ class ValidateConfiguration(object):
         n = len(top_line) + len(bot_line)
 
         for x,y in top_line:
-            pred = result.get_lens_value(x)
-            if pred > -1:
-                res = y - pred
-                mse += (res)**2
-                mae += abs(res)
+            if x >= result.lens_start_line and x <= result.lens_end_line:
+                pred = result.get_lens_value(x)
+                if pred > -1:
+                    res = y - pred
+                    mse += (res)**2
+                    mae += abs(res)
 
         for x,y in bot_line:
-            pred = result.get_cornea_value(x)
-            if pred > 1:
-                res = y - pred
-                mse += (res)**2
-                mae += abs(res)
+            if x >= result.cornea_start_line and x <= result.cornea_end_line:
+                pred = result.get_cornea_value(x)
+                if pred > 1:
+                    res = y - pred
+                    mse += (res)**2
+                    mae += abs(res)
 
         return mse/n, mae/n
 
@@ -61,20 +63,30 @@ class ValidateConfiguration(object):
 
         global_mae = global_mse = global_tp = global_tn = global_fp = global_fn = 0
         dict_data = {"CONFIG_ID": parameters.id}
+        counter = 0
 
         for i in range(0, len(image_list)):
 
-            result = PipeClass(parameters).run(image_list[i])
+            result = PipeClass(parameters, verbose=False).run(image_list[i])
             eval_data = utils.load_validation(names_list[i])
 
             if result != None:
                 mse, mae, tp, tn, fp, fn = self._validate_result(result,eval_data)
 
-                mse_list.append(mse)
-                mae_list.append(mae)
+                #if fp + fn >0:
+                    #print(names_list[i])
+
+                mse_list.append({names_list[i],mse})
+                mae_list.append({names_list[i],mae})
+
                 if mae != None and mse != None:
+                    counter += 1
                     global_mae += mae
                     global_mse += mse
+                    #if mse > 2:
+                        #result.show(image_list[i])
+                        #print(names_list[i])
+
                 global_tp += tp
                 global_tn += tn
                 global_fp += fp
@@ -92,8 +104,8 @@ class ValidateConfiguration(object):
         dict_data["NPV"] = npv
         dict_data["MAE"] = mae_list
         dict_data["MSE"] = mse_list
-        dict_data["AVG_MAE"] = global_mae / len(image_list)
-        dict_data["AVG_MSE"] = global_mse / len(image_list)
+        dict_data["AVG_MAE"] = global_mae / counter
+        dict_data["AVG_MSE"] = global_mse / counter
         dict_data
 
         return dict_data

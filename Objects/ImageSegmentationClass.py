@@ -31,8 +31,15 @@ class ImageSegmentationClass(object):
         else:
             return None, None, False
 
-    def show(self, image):
-        plt.figure("Rotated image segmentation")
+    def show(self, image, image2=None, name = None):
+        if name:
+            plt.figure(name)
+        else:
+            plt.figure("Rotated image segmentation")
+
+        if image2 is not None:
+            plt.subplot(121)
+
         for layer in self.layers:
             top = list(zip(*layer.top_line))
             plt.plot(top[0],top[1])
@@ -40,4 +47,15 @@ class ImageSegmentationClass(object):
                 bot = list(zip(*layer.bot_line))
                 plt.plot(bot[0],bot[1])
         plt.imshow(image)
+
+        if image2 is not None:
+            plt.subplot(122)
+            for layer in self.layers:
+                top = list(zip(*layer.top_line))
+                plt.plot(top[0], top[1])
+                if not layer.is_retina:
+                    bot = list(zip(*layer.bot_line))
+                    plt.plot(bot[0], bot[1])
+            plt.imshow(image2)
+
         plt.show()

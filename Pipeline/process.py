@@ -1,11 +1,12 @@
 import cv2
 import matplotlib.pyplot as plt
+from matplotlib import transforms
 import numpy as np
 from Objects.ImageSegmentationClass import ImageSegmentationClass
 from Objects.LayerClass import LayerClass
 from Objects.ResultClass import ResultClass
-from skimage.segmentation import active_contour
 from Utils import utils
+from scipy import stats
 
 class ProccesClass(object):
 
@@ -18,7 +19,7 @@ class ProccesClass(object):
     def __init__(self, parameters):
         self.parameters = parameters
 
-    def _get_nearest_edge(self, edge_image, column, start_position, previous_line):
+    def _get_nearest_edge(self, edge_image, column, start_position):
 
         min_pos = start_position - self.parameters.localization_top_window
         max_pos = start_position + self.parameters.localization_bot_window
@@ -68,20 +69,20 @@ class ProccesClass(object):
         else:
             has_previous = False
 
-        for i in range(0, self.width):
+        for i in range(0, self.width,10):
 
             #Distancia por encima de la aproximación
             bottom_distance = -1
             for j in range(row,row+self.parameters.max_dist_to_roi):
                 if edge_img[j,i] > 0:
-                    if not has_previous or j > previous_line.get_pos("bot", i):
+                    if (not has_previous or j > previous_line.get_pos("bot", i)) and self.check_point(edge_img,j,i):
                         bottom_distance = j
                         break
             #Distancia por debajo de la aproximación
             top_distance = -1
             for j in range(row, row-self.parameters.max_dist_to_roi,-1):
                 if edge_img[j,i] > 0:
-                    if not has_previous or j > previous_line.get_pos("bot", i):
+                    if (not has_previous or j > previous_line.get_pos("bot", i)) and self.check_point(edge_img,j,i):
                         top_distance = j
                         break
             #Si ha encontrado un valor nos quedamos con la columna
@@ -104,6 +105,12 @@ class ProccesClass(object):
                     return top_distance, start_column
         return -1, -1
 
+    def check_point(self, edge_image, x, y):
+        if sum(edge_image[x-5:x+5,y-10]) > 0 and sum(edge_image[x-5:x+5,y+10])>0:
+            return True
+        else:
+            return False
+
     def _get_roi(self, edge_img, showRoi = False):
         # Localizamos lineas de interés
         rows = [sum(edge_img[row, :]) for row in range(0, self.height)]
@@ -122,14 +129,18 @@ class ProccesClass(object):
                     result.append(previous_result)
                 except:
                     break
+
         if showRoi:
             plt.figure(1)
-            plt.subplot(121)
+            plt.subplot(131)
             for row in result:
                 plt.axhline(y=row)
             plt.imshow(edge_img)
-            plt.subplot(122)
-            plt.axhline(y=self.parameters.roi_th)
+
+            plt.subplot(132)
+            plt.plot(rows)
+            plt.subplot(133)
+            plt.axhline(y=self.parameters.roi_th, c='g')
             plt.plot(diff)
 
             plt.show()
@@ -186,7 +197,7 @@ class ProccesClass(object):
                 for i in range(start_column+1, width):
 
                     # Primer borde a partir de la posición anterior
-                    pos = self._get_nearest_edge(edge_img, i, top_line[i - 1], seg.get_last_bot_line(i))
+                    pos = self._get_nearest_edge(edge_img, i, top_line[i - 1])
 
                     # En caso de gap
                     if pos == -1:
@@ -209,7 +220,7 @@ class ProccesClass(object):
                     top_line[i] = pos
 
                 # Hay demasiado gap --> no es una línea real
-                if in_gap  and self.width-right_gap>self.width*0.8:
+                if in_gap  and self.width-right_gap>self.width*0.7:
                     n_rows += 1
                     continue
 
@@ -219,7 +230,7 @@ class ProccesClass(object):
                 for i in range(start_column-1, -1, -1):
 
                     # Primer borde a partir de la posición anterior
-                    pos = self._get_nearest_edge(edge_img, i, top_line[i + 1], seg.get_last_bot_line(i))
+                    pos = self._get_nearest_edge(edge_img, i, top_line[i + 1])
 
                     # En caso de gap
                     if pos == -1:  # GAP
@@ -241,17 +252,20 @@ class ProccesClass(object):
                     # Almacenamos la posición final
                     top_line[i] = pos
 
-                if in_gap and left_gap>self.width*0.8:
+
+                total_len = right_end - left_end
+                gaps_len = sum([right - left for right, left in gaps])
+
+                if (in_gap and left_gap>self.width*0.7) or (gaps_len/total_len) > 0.6:
                     n_rows += 1
                     continue
 
                 layer.set_top_line(top_line[left_end+1:right_end-1], left_end+1, right_end-1)
                 layer.set_gaps(gaps)
-                layer.interpolate_gaps()
 
                 # Comprobamos si es retina
-                diff = np.mean([int(np.sum(enhanced_img[(int(top_line[k]) + 10):(int(top_line[k]) + 20), k])) - int(
-                    np.sum(enhanced_img[(int(top_line[k]) - 10):int(top_line[k]), k])) for k in range(left_end + 1, right_end-1)])
+                diff = np.mean([int(np.sum(enhanced_img[(int(top_line[k]) + self.parameters.edge_width):(int(top_line[k]) + self.parameters.edge_width + self.parameters.sample_window), k])) - int(
+                    np.sum(enhanced_img[(int(top_line[k]) - self.parameters.sample_window):int(top_line[k]), k])) for k in range(left_end + 1, right_end-1)])
 
                 if (diff / mean) > self.parameters.cornea_th or n_capas == self.parameters.n_roi-1:
                     n_capas += 1
@@ -276,7 +290,7 @@ class ProccesClass(object):
             n_rows += 1
 
         if showImgs:
-            seg.show(edge_img)
+            seg.show(edge_img,enhanced_img)
 
         return seg
 
@@ -286,11 +300,11 @@ class ProccesClass(object):
 
         self.mask = self._pre_get_masks()
 
-        edge_img = self._get_edges(np.ones((5, 5), np.uint8), (50, 80) , showEdges=False)
+        edge_img = self._get_edges(np.ones((self.parameters.canny_kernel, self.parameters.canny_kernel), np.uint8), (self.parameters.canny_inf, self.parameters.canny_sup) , showEdges=False)
 
         edge_img = cv2.bitwise_or(edge_img, edge_img, mask=self.mask)
 
-        segmentation = self._localization(edge_img, enhanced_img, showImgs=True)
+        segmentation = self._localization(edge_img, enhanced_img, showImgs=False)
 
         top_line, bot_line, has_lens = segmentation.get_result()
 

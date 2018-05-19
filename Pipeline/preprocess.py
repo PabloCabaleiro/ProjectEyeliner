@@ -166,12 +166,11 @@ class PreproccessClass(object):
         img_yuv = cv2.cvtColor(filter_img, cv2.COLOR_BGR2YUV)
 
         # equalize the histogram of the Y channel
-        kernel = np.ones((15, 15), np.uint8)
+        kernel = np.ones((self.parameters.top_hat_kernel, self.parameters.top_hat_kernel), np.uint8)
         img_yuv[:, :, 0] = cv2.morphologyEx(img_yuv[:, :, 0],  cv2.MORPH_TOPHAT, kernel)
 
         # convert the YUV image back to RGB format
         return cv2.cvtColor(img_yuv, cv2.COLOR_YUV2BGR)
-
 
 
     def pipeline(self, img):
