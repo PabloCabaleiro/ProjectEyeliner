@@ -172,6 +172,21 @@ class PreproccessClass(object):
         # convert the YUV image back to RGB format
         return cv2.cvtColor(img_yuv, cv2.COLOR_YUV2BGR)
 
+    def _weird_enhancement(self, filter_img):
+        width = np.shape(filter_img)[0]
+        height = np.shape(filter_img)[1]
+        aux_img = filter_img.copy()
+
+        for i in range(0, width):
+            for j in range(0,height):
+                if sum(filter_img[i,j]) > 0:
+                    region = filter_img[max(0,i-5):min(width-1,i+5),max(0,j-5):min(height-1,j+5),1]
+                    aux_img[i,j,1] = 2*filter_img[i,j,1] - np.mean(region) + (100*np.min(region)/(np.max(region)+1))
+
+        return aux_img
+
+
+
 
     def pipeline(self, img):
 

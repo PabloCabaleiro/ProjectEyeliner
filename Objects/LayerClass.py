@@ -34,9 +34,12 @@ class LayerClass(object):
 
     def interpolate_gaps(self):
         for start, end in self._gaps:
-            step = (self.top_line[end - self._start_line][1] - self.top_line[start - self._start_line][1]) / (end - start)
-            for k in range(start, end):
-                self.top_line[k - self._start_line] = (self.top_line[k - self._start_line][0],round(self.top_line[k - 1 - self._start_line][1] + step))
+            try:
+                step = (self.top_line[end - self._start_line][1] - self.top_line[start - self._start_line][1]) / (end - start)
+                for k in range(start, end):
+                    self.top_line[k - self._start_line] = (self.top_line[k - self._start_line][0],round(self.top_line[k - 1 - self._start_line][1] + step))
+            except:
+                continue
 
     def set_bot_line(self, bot_line):
         for i in range(len(bot_line)):

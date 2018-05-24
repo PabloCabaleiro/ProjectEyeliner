@@ -220,7 +220,7 @@ class ProccesClass(object):
                     top_line[i] = pos
 
                 # Hay demasiado gap --> no es una línea real
-                if in_gap  and self.width-right_gap>self.width*0.7:
+                if in_gap  and self.width-right_gap>self.width*0.4:
                     n_rows += 1
                     continue
 
@@ -254,14 +254,15 @@ class ProccesClass(object):
 
 
                 total_len = right_end - left_end
-                gaps_len = sum([right - left for right, left in gaps])
+                gaps_len = sum([right - left for left, right in gaps])
 
-                if (in_gap and left_gap>self.width*0.7) or (gaps_len/total_len) > 0.6:
+                if (in_gap and left_gap>self.width*0.4) or (gaps_len/total_len) > 0.7:
                     n_rows += 1
                     continue
 
                 layer.set_top_line(top_line[left_end+1:right_end-1], left_end+1, right_end-1)
                 layer.set_gaps(gaps)
+                layer.interpolate_gaps()
 
                 # Comprobamos si es retina
                 diff = np.mean([int(np.sum(enhanced_img[(int(top_line[k]) + self.parameters.edge_width):(int(top_line[k]) + self.parameters.edge_width + self.parameters.sample_window), k])) - int(
@@ -304,7 +305,7 @@ class ProccesClass(object):
 
         edge_img = cv2.bitwise_or(edge_img, edge_img, mask=self.mask)
 
-        segmentation = self._localization(edge_img, enhanced_img, showImgs=False)
+        segmentation = self._localization(edge_img, enhanced_img, showImgs=True)
 
         top_line, bot_line, has_lens = segmentation.get_result()
 

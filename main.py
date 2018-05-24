@@ -11,23 +11,26 @@ def main(verbose):
 
     parameters = ParameterManagerClass() #default
 
-    # image_list, names_list = _read_images()
-    #
-    # for i in range(0, len(image_list)):
-    #
-    #     if verbose:
-    #         print(names_list[i])
-    #
-    #     result_snake = PipeClass(parameters, verbose=verbose).run(image_list[i])
+    image_list, names_list = _read_images()
 
-    data = ValidateConfiguration().validate(parameters)
-    first = True
+    for i in range(0, len(image_list)):
 
-    with open(utils.VAL_PATH + "result_data.csv", 'a') as csvfile:
-        writer = csv.DictWriter(csvfile, data.keys())
-        if first:
-            writer.writeheader()
-        writer.writerow(data)
+        if verbose:
+            print(names_list[i])
+
+        result_snake = PipeClass(parameters, verbose=verbose).run(image_list[i])
+        if result_snake.has_lens:
+            metrics = MetricsClass(result_snake, verbose=verbose)
+            metrics.show_distances(image_list[i])
+
+    # data = ValidateConfiguration().validate(parameters)
+    # first = True
+    #
+    # with open(utils.VAL_PATH + "result_data.csv", 'a') as csvfile:
+    #     writer = csv.DictWriter(csvfile, data.keys())
+    #     if first:
+    #         writer.writeheader()
+    #     writer.writerow(data)
 
 
 
@@ -35,4 +38,4 @@ def main(verbose):
 
 
 if __name__ == '__main__':
-    main(verbose=False)
+    main(verbose=True)

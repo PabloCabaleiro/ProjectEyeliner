@@ -98,14 +98,14 @@ class ValidateConfiguration(object):
         acc, tpr, tnr, ppv, npv = self._get_metrics(global_tp,global_tn,global_fp,global_fn)
 
         dict_data["ACC"] = acc
+        dict_data["AVG_MAE"] = global_mae / counter
+        dict_data["AVG_MSE"] = global_mse / counter
         dict_data["TPR"] = tpr
         dict_data["TNR"] = tnr
         dict_data["PPV"] = ppv
         dict_data["NPV"] = npv
         dict_data["MAE"] = mae_list
         dict_data["MSE"] = mse_list
-        dict_data["AVG_MAE"] = global_mae / counter
-        dict_data["AVG_MSE"] = global_mse / counter
         dict_data
 
         return dict_data
