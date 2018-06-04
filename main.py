@@ -19,9 +19,9 @@ def main(verbose):
             print(names_list[i])
 
         result_snake = PipeClass(parameters, verbose=verbose).run(image_list[i])
-        if result_snake.has_lens:
-            metrics = MetricsClass(result_snake, verbose=verbose)
-            metrics.show_distances(image_list[i])
+        #if result_snake.has_lens:
+        #    metrics = MetricsClass(result_snake, verbose=verbose)
+        #    metrics.show_distances(image_list[i])
 
     # data = ValidateConfiguration().validate(parameters)
     # first = True

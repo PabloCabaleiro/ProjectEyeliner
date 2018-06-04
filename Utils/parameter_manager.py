@@ -5,8 +5,8 @@ from hashlib import blake2b
 CORNEA_TH_DEFAULT = 30               # Diferencia de intensidad umbral para ser cornea entre los vectores de SAMPLE_SIZE
 MAX_DIST_TO_ROI_DEFAULT = 20         # Distancia máxima a la línea marcada como ROI para ser punto de inicio
 #Aproximación al borde
-LOCALIZATION_TOP_WINDOW_DEFAULT = 10 # Ventana de movimiento entre píxeles colindantes de un borde hacia arriba
-LOCALIZATION_BOT_WINDOW_DEFAULT = 10 # Ventana de movimiento entre píxeles colindantes de un borde hacia abajo
+LOCALIZATION_TOP_WINDOW_DEFAULT = 20 # Ventana de movimiento entre píxeles colindantes de un borde hacia arriba
+LOCALIZATION_BOT_WINDOW_DEFAULT = 20 # Ventana de movimiento entre píxeles colindantes de un borde hacia abajo
 #Detección de capas
 MIN_DIST_BETWEEN_ROI_RATE = 0.05          # Distancia mínima entre capas
 ROI_TH_DEFAULT = 3000                # Umbral de diferencia entre filas para ser la aproximación de una capa
@@ -20,15 +20,15 @@ W_LINE_DEFAULT = 0                   # Controls attraction to brightness. Use ne
 W_EDGE_DEFAULT = 1                   # Controls attraction to edges. Use negative values to repel snake from edges
 GAMMA_DEFAULT = 0.1                  # Explicit time stepping parameter.
 #Canny
-CANNY_SUP_DEFAULT = 60
-CANNY_INF_DEFAULT = 40
+CANNY_SUP_DEFAULT = 110
+CANNY_INF_DEFAULT = 80
 CANNY_KERNER_DEFAULT = 5
 
 #############################################PREPROCCES CLASS###########################################################
 MEDIAN_VALUE_DEFAULT = 3
-BILATERAL_SIGMA_COLOR_DEFAULT = 150 # Filter sigma in the color space. A larger value of the parameter means that farther
+BILATERAL_SIGMA_COLOR_DEFAULT = 170 # Filter sigma in the color space. A larger value of the parameter means that farther
 # colors within the pixel neighborhood will be mixed together, resulting in larger areas of semi-equal color.
-BILATERAL_SIGMA_SPACE_DEFAULT = 150 # Filter sigma in the coordinate space. A larger value of the parameter means that farther
+BILATERAL_SIGMA_SPACE_DEFAULT = 170 # Filter sigma in the coordinate space. A larger value of the parameter means that farther
 # pixels will influence each other as long as their colors are close enough (see sigmaColor ).
 BILATERAL_DIAMETER_DEFAULT = 11      # Diameter of each pixel neighborhood that is used during filtering.
 N_BINS_DEFAULT = 30                  # Bins of orientations to the hog function

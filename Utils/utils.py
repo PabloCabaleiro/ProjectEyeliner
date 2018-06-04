@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 VAL_PATH = "validation-data\\"
-IMG_PATH = "imgenestfm\\*"
+IMG_PATH = "imgenesjn\\*"
 PROBLEMS_PATH = "problemas\\*"
 CONFIG_PATH = "images_config\\*"
 
@@ -13,7 +13,7 @@ CONFIG_PATH = "images_config\\*"
 def _read_images():
     image_list = []
     names_list = []
-    for filename in glob.glob(CONFIG_PATH):  # assuming gif
+    for filename in glob.glob(IMG_PATH):  # assuming gif
         im = cv2.imread(filename)
         image_list.append(im)
         names_list.append(filename)
