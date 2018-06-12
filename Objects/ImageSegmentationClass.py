@@ -5,8 +5,27 @@ class ImageSegmentationClass(object):
     layers = None
     _complete = False
 
-    def __init__(self):
-        self.layers = []
+    def __init__(self, layers, diff=None):
+
+        if diff is None:
+            self.layers = layers
+            self._complete= True
+            self.layers[-1].is_retina = True
+
+        else:
+
+            self.layers = []
+            index = diff.index(max(diff))
+
+            for i in range(0, index +1):
+                if i == index:
+                    layer = layers[i]
+                    layer.is_retina = True
+                    self.add_layer(layer)
+                    self._complete = True
+                else:
+                    self.add_layer(layers[i])
+
 
     def add_layer(self, layer):
         self.layers.append(layer)

@@ -5,7 +5,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 VAL_PATH = "validation-data\\"
-IMG_PATH = "imgenesjn\\*"
+IMG_PATH = "imgenestfm\\*"
+FILTER_PATH = "imgenesjn\\*"
 PROBLEMS_PATH = "problemas\\*"
 CONFIG_PATH = "images_config\\*"
 
@@ -13,12 +14,17 @@ CONFIG_PATH = "images_config\\*"
 def _read_images():
     image_list = []
     names_list = []
+    filter_list = []
     for filename in glob.glob(IMG_PATH):  # assuming gif
         im = cv2.imread(filename)
         image_list.append(im)
         names_list.append(filename)
 
-    return image_list, names_list
+    for filename in glob.glob(FILTER_PATH):  # assuming gif
+        im = cv2.imread(filename)
+        filter_list.append(im)
+
+    return image_list, filter_list, names_list
 
 def get_dist(point1,point2):
     return math.sqrt((point2[1]-point1[1])**2 + (point2[0]-point1[0])**2)

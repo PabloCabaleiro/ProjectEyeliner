@@ -19,7 +19,7 @@ class PreproccessClass(object):
     def __init__(self, parameters):
         self.parameters = parameters
 
-    def _rotate_bound(self, filter_image, angle):
+    def _rotate_bound(self, filter_image, og_img, angle):
         # grab the dimensions of the image and then determine the
         # center
         (h, w) = filter_image.shape[:2]
@@ -41,7 +41,7 @@ class PreproccessClass(object):
         M[1, 2] += (nH / 2) - cY
 
         # perform the actual rotation and return the image
-        return cv2.warpAffine(filter_image, M, (nW, nH)), M
+        return cv2.warpAffine(filter_image, M, (nW, nH)),cv2.warpAffine(og_img, M, (nW, nH)), M
 
     def _get_image_type(self, shape):
         if ((shape[0], shape[1]) == BIG_SHAPE):
@@ -116,7 +116,7 @@ class PreproccessClass(object):
 
         return hist, bin_size
 
-    def _pre_rotate(self, img, filter_image, nbins=12, showRotation=False):
+    def _pre_rotate(self, og_img, filter_image, nbins=12, showRotation=False):
 
         blur_img = cv2.GaussianBlur(filter_image.copy(), ksize=(17, 17), sigmaX=100)
 
@@ -124,21 +124,21 @@ class PreproccessClass(object):
 
         angle = bin_size * list(hog).index(max(hog))
 
-        rotated_img, rotation_matrix = self._rotate_bound(filter_image, 90 - angle)
+        rotated_img, rotated_og, rotation_matrix = self._rotate_bound(filter_image, og_img, 90 - angle)
 
         if showRotation:
             plt.figure(1)
             plt.subplot(131)
-            plt.imshow(img)
+            plt.imshow(og_img)
             plt.subplot(132)
-            plt.axvline(x=90)
+            plt.axvline(x=90, color="r", linestyle='dashed')
             plt.plot([v * bin_size for v in list(range(0, nbins))], hog)
             plt.subplot(133)
             plt.imshow(rotated_img)
 
             plt.show()
 
-        return rotated_img, rotation_matrix
+        return rotated_img, rotated_og, rotation_matrix
 
     def _pre_enhance_equalization(self,filter_img):
 
@@ -188,13 +188,15 @@ class PreproccessClass(object):
 
 
 
-    def pipeline(self, img):
+    def pipeline(self, img, filter_img):
 
-        filter_img = self._remove_UI(img)
-        rotate_img, rotation_matrix = self._pre_rotate(img, filter_img, nbins=self.parameters.n_bins, showRotation=False)
+        filter_img = self._remove_UI(filter_img)
+        enhanced_image = self._pre_enhance_top_hat(img)
+        rotate_img, enhanced_image, rotation_matrix = self._pre_rotate(enhanced_image, filter_img, nbins=self.parameters.n_bins, showRotation=False)
 
-        enhanced_image = self._pre_enhance_top_hat(rotate_img)
 
-        filter_img = self._pre_median_bilateral(enhanced_image, bilateral_values=(self.parameters.bilateral_diameter, self.parameters.sigma_color, self.parameters.sigma_space),
-                                                median_value=self.parameters.median_value)
+
+        #filter_img = self._pre_median_bilateral(enhanced_image, bilateral_values=(self.parameters.bilateral_diameter, self.parameters.sigma_color, self.parameters.sigma_space),
+                                                #median_va  lue=self.parameters.median_value)
+
         return rotate_img, enhanced_image, rotation_matrix

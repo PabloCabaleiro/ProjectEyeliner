@@ -64,7 +64,7 @@ class ProccesClass(object):
 
     def _get_starting_pos(self, edge_img, row, previous_line, showStartingPos = False):
 
-        if previous_line != -1:
+        if previous_line != None:
             has_previous = True
         else:
             has_previous = False
@@ -75,7 +75,7 @@ class ProccesClass(object):
             bottom_distance = -1
             for j in range(row,row+self.parameters.max_dist_to_roi):
                 if edge_img[j,i] > 0:
-                    if (not has_previous or j > previous_line.get_pos("bot", i)) and self.check_point(edge_img,j,i):
+                    if (not has_previous or j > previous_line.get_pos("bot", i) + self.parameters.edge_width) and self.check_point(edge_img,j,i):
                         bottom_distance = j
                         break
             #Distancia por debajo de la aproximación
@@ -159,7 +159,7 @@ class ProccesClass(object):
 
         return top_line_inv, bot_line_inv
 
-    def _get_top_line(self, edge_img, start_column, start_value, seg):
+    def _get_top_line(self, edge_img, start_column, start_value, layers):
 
         left_end = 0
         right_end = self.width
@@ -179,8 +179,14 @@ class ProccesClass(object):
 
             # En caso de gap
             if pos == -1:
-                # Mantenemos la misma posición que el punto interior pero evitando cruzar capa anterior
-                pos = max(top_line[i - 1], seg.get_last_bot_line(i))
+                # Mantenemos la misma posición que el punto anterior pero evitando cruzar capa interior
+                if len(layers) > 0:
+                    try:
+                        pos = max(top_line[i - 1], layers[-1].get_pos("bot", i))
+                    except:
+                        pos = top_line[i - 1]
+                else:
+                    pos = top_line[i - 1]
 
                 # Si estamos en gap y fuera de la imagen
                 if self.mask[pos, i] == 0:
@@ -212,7 +218,13 @@ class ProccesClass(object):
             # En caso de gap
             if pos == -1:  # GAP
                 # Mantenemos la misma posición que el punto interior pero evitando cruzar capa anterior
-                pos = max(top_line[i + 1], seg.get_last_bot_line(i))
+                if len(layers) > 0:
+                    try:
+                        pos = max(top_line[i + 1], layers[-1].get_pos("bot", i))
+                    except:
+                        pos = top_line[i + 1]
+                else:
+                    pos = top_line[i + 1]
 
                 # Si estamos en gap y fuera de la imagen
                 if self.mask[pos, i] == 0:
@@ -233,15 +245,24 @@ class ProccesClass(object):
             # Almacenamos la posición final
             top_line[i] = pos
 
-        return top_line, gaps, left_end, right_end
+        if self._check_line(top_line, gaps, left_end, right_end):
 
-    def _get_bot_line(self,edge_img, top_line):
+            layer = LayerClass()
+            layer.set_top_line(top_line[left_end+1:right_end-1], left_end+1, right_end-1)
+            layer.set_gaps(gaps)
+            layer.interpolate_gaps()
+            return layer
+        else:
+            return None
+
+    def _get_bot_line(self, edge_img, layer):
         result = []
         # Línea inferior a partir de la superior
-        for i in range(0, self.width):
+        for i in range(layer.get_start(), layer.get_end()):
+            y = layer.get_pos("top",i)
             aux = [int(edge_img[j, i]) - int(edge_img[j - 1, i]) for j in
-                   range(int(top_line[i]), int(top_line[i]) + 30)]
-            result.append(int(np.argmax(np.array(aux[5:]) < 0) + top_line[i] + 5))
+                   range(y + self.parameters.edge_width, y + self.parameters.edge_width + self.parameters.sample_window)]
+            result.append(int(np.argmax(np.array(aux) < 0) + y + self.parameters.edge_width))
 
         return result
 
@@ -255,22 +276,19 @@ class ProccesClass(object):
         else:
             return True
 
-    def _check_cornea(self, top_line, enhanced_img, left_end, right_end, mean):
+    def _check_cornea(self, layer, enhanced_img):
+        top_line = layer.top_line
         # Comprobamos si es retina
-        diff = np.mean([int(np.sum(enhanced_img[(int(top_line[k]) + self.parameters.edge_width):(
-        int(top_line[k]) + self.parameters.edge_width + self.parameters.sample_window), k])) - int(
-            np.sum(enhanced_img[(int(top_line[k]) - self.parameters.sample_window):int(top_line[k]), k])) for k in
-                        range(left_end + 1, right_end - 1)])
+        diff = np.mean([int(np.sum(enhanced_img[(int(top_line[k][1]) + self.parameters.edge_width*3):(
+        int(top_line[k][1]) + self.parameters.edge_width*3 + self.parameters.sample_window), top_line[k][0]])) - int(
+            np.sum(enhanced_img[(int(top_line[k][1]) - self.parameters.sample_window):int(top_line[k][1]), top_line[k][0]])) for k in
+                        range(0, len(top_line))])
 
-        if (diff / mean) > self.parameters.cornea_th:
-            return True
-        else:
-            return False
+        return diff
 
     def _localization(self, edge_img, enhanced_img, showImgs=False):
 
         self.height, self.width = np.shape(edge_img)
-        mean = np.mean(self.filter_img)
 
         #Obtenemos lineas iniciales de aproximación
         rows = self._get_roi(edge_img,showRoi=False)
@@ -280,35 +298,31 @@ class ProccesClass(object):
         n_capas = 0
         n_rows = 0
 
-        seg = ImageSegmentationClass()
+        diffs = []
+        layers = []
 
         while n_capas < self.parameters.n_roi and n_rows < N_ROWS:
-
-            layer = LayerClass(n_capas)
-
             # Encontramos una posición válida para el inicio
-            start_value, start_column = self._get_starting_pos(edge_img,rows[n_rows],seg.get_last_bot_line(),showStartingPos=False)
+            if len(layers) == 0:
+                start_value, start_column = self._get_starting_pos(edge_img,rows[n_rows],None,showStartingPos=False)
+            else:
+                start_value, start_column = self._get_starting_pos(edge_img,rows[n_rows],layers[-1],showStartingPos=False)
 
             if start_column != -1:
 
-                top_line, gaps, left_end, right_end = self._get_top_line(edge_img,start_column,start_value,seg)
+                layer = self._get_top_line(edge_img,start_column,start_value,layers)
 
-                if self._check_line(top_line,gaps,left_end,right_end):
+                if layer != None:
 
-                    layer.set_top_line(top_line[left_end+1:right_end-1], left_end+1, right_end-1)
-                    layer.set_gaps(gaps)
-                    layer.interpolate_gaps()
+                    diffs.append(self._check_cornea(layer, enhanced_img))
 
-                    if self._check_cornea(top_line,enhanced_img,left_end,right_end,mean) or n_capas == self.parameters.n_roi - 1:
-                        n_capas += 1
-                        layer.is_retina = True
-                        seg.add_layer(layer)
+                    if n_capas == self.parameters.n_roi - 1:
+                        layers.append(layer)
                         break
 
-                    bot_line = self._get_bot_line(edge_img,top_line)
+                    layer.set_bot_line(self._get_bot_line(edge_img,layer))
 
-                    layer.set_bot_line(bot_line[left_end+1:right_end-1])
-                    seg.add_layer(layer)
+                    layers.append(layer)
 
                 else:
                     n_rows +=1
@@ -319,6 +333,8 @@ class ProccesClass(object):
 
             n_capas += 1
             n_rows += 1
+
+        seg = ImageSegmentationClass(layers,diffs)
 
         if showImgs:
             seg.show(edge_img,enhanced_img)

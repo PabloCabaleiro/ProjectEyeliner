@@ -9,8 +9,8 @@ class LayerClass(object):
     n_capa = -1
     _gaps = None
 
-    def __init__(self, n_capa):
-        self.n_capa = n_capa
+    def __init__(self):
+        self.n_capa = -1
         self.bot_line = []
         self.top_line = []
         self._start_line = -1
@@ -45,8 +45,21 @@ class LayerClass(object):
         for i in range(len(bot_line)):
             self.bot_line.append((i + self._start_line,bot_line[i]))
 
+    def get_top_line(self):
+        return self.top_line
+
     def set_gaps(self,gaps):
         self._gaps = gaps
 
+    def get_gaps(self):
+        return self._gaps
 
+    def set_n_capa(self,n_capa):
+        self.n_capa = n_capa
+
+    def get_start(self):
+        return self._start_line
+
+    def get_end(self):
+        return self._end_line
 

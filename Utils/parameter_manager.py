@@ -10,8 +10,8 @@ LOCALIZATION_BOT_WINDOW_DEFAULT = 20 # Ventana de movimiento entre píxeles coli
 #Detección de capas
 MIN_DIST_BETWEEN_ROI_RATE = 0.05          # Distancia mínima entre capas
 ROI_TH_DEFAULT = 3000                # Umbral de diferencia entre filas para ser la aproximación de una capa
-EDGE_WIDTH_DEFAULT = 10              # Tamaño aproximado del borde completo desde el límite superior al inferior\
-SAMPLE_WINDOW_DEFAULT = 10           # Tamaño ventana para el estudio de las intensidades anteriores y posteriores a un borde
+EDGE_WIDTH_DEFAULT = 3              # Tamaño aproximado del borde completo desde el límite superior al inferior\
+SAMPLE_WINDOW_DEFAULT = 20           # Tamaño ventana para el estudio de las intensidades anteriores y posteriores a un borde
 N_ROI_DEFAULT = 3
 #Snake
 BETA_DEFAULT = 20                    # Snake length shape parameter. Higher values makes snake contract faster.

@@ -34,7 +34,7 @@ class PipeClass():
         plt.show()
 
 
-    def run(self,image):
+    def run(self,og_image,filter_image):
 
 
         preprocces = PreproccessClass(self.parameters)
@@ -45,7 +45,7 @@ class PipeClass():
             start_time = time.time()
             print("\tPipeline:")
 
-        rotated_img, enhanced_image, rotation_matrix = preprocces.pipeline(image)
+        rotated_img, enhanced_image, rotation_matrix = preprocces.pipeline(og_image, filter_image)
 
         if self.verbose:
             preprocess_time = time.time()
@@ -58,12 +58,12 @@ class PipeClass():
             print("\t\tTiempo procesado: " + str(process_time - preprocess_time) + "s")
 
         if result.has_lens:
-            result_snake = snake.run(image, result.lens, result.cornea)
+            result_snake = snake.run(og_image, result.lens, result.cornea)
             if self.verbose:
                 snake_time = time.time()
                 print("\t\tTiempo snake: " + str(snake_time - process_time) + "s")
                 print("\t\tTiempo total: " + str(snake_time - start_time) + "s")
-                self.show_results(image,result,result_snake)
+                self.show_results(og_image,result,result_snake)
             return result_snake
 
         elif self.verbose:

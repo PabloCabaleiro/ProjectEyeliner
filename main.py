@@ -11,17 +11,17 @@ def main(verbose):
 
     parameters = ParameterManagerClass() #default
 
-    image_list, names_list = _read_images()
+    image_list, filter_list, names_list = _read_images()
 
     for i in range(0, len(image_list)):
 
         if verbose:
             print(names_list[i])
 
-        result_snake = PipeClass(parameters, verbose=verbose).run(image_list[i])
-        #if result_snake.has_lens:
-        #    metrics = MetricsClass(result_snake, verbose=verbose)
-        #    metrics.show_distances(image_list[i])
+        result_snake = PipeClass(parameters, verbose=verbose).run(image_list[i],filter_list[i])
+        if result_snake.has_lens:
+            metrics = MetricsClass(result_snake, verbose=verbose)
+            metrics.show_distances(image_list[i])
 
     # data = ValidateConfiguration().validate(parameters)
     # first = True
