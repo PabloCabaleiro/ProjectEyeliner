@@ -10,8 +10,8 @@ class SnakeClass(object):
         self.parameters = parameters
 
     def snake(self, image, lens, cornea):
-        points_lens = np.array([[int(x),int(y)] for x,y in lens])
-        points_cornea = np.array([[int(x),int(y)] for x,y in cornea])
+        points_lens = np.array([[int(x),int(y)] for x,y in lens[1:-1]])
+        points_cornea = np.array([[int(x),int(y)] for x,y in cornea[1:-1]])
         snake_lens = active_contour(image, points_lens, alpha= self.parameters.alpha, beta= self.parameters.beta, w_line= self.parameters.w_line,
                                     w_edge= self.parameters.w_edge, gamma= self.parameters.gamma, bc="fixed")
         snake_cornea = active_contour(image, points_cornea, alpha= self.parameters.alpha, beta= self.parameters.beta, w_line= self.parameters.w_line,

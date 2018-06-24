@@ -149,9 +149,11 @@ class ProccesClass(object):
 
     def _rotate_back(self, top_line, bot_line, rotation_matrix):
         M = cv2.invertAffineTransform(rotation_matrix)
-
-        top_line_ones = np.hstack([top_line, np.ones(shape=(len(top_line), 1))])
-        bot_line_ones = np.hstack([bot_line, np.ones(shape=(len(bot_line), 1))])
+        try:
+            top_line_ones = np.hstack([top_line, np.ones(shape=(len(top_line), 1))])
+            bot_line_ones = np.hstack([bot_line, np.ones(shape=(len(bot_line), 1))])
+        except:
+            return top_line, bot_line
 
 
         top_line_inv = M.dot(top_line_ones.T).T
@@ -271,7 +273,7 @@ class ProccesClass(object):
         # Hay demasiado gap --> no es una línea real
         total_gap = sum([y-x for x,y in gaps])
         total_line = right_end - left_end
-        if total_gap/total_line > 0.6:
+        if total_gap/total_line > 0.5:
             return False
         else:
             return True
@@ -351,12 +353,11 @@ class ProccesClass(object):
 
         edge_img = cv2.bitwise_or(edge_img, edge_img, mask=self.mask)
 
-        segmentation = self._localization(edge_img, enhanced_img, showImgs=True)
+        segmentation = self._localization(edge_img, enhanced_img, showImgs=False)
 
         top_line, bot_line, has_lens = segmentation.get_result()
 
-        if has_lens:
-            top_line, bot_line = self._rotate_back(top_line,bot_line, rotation_matrix)
-            top_line, bot_line = utils.fpoints2ipoints(top_line, bot_line)
+        top_line, bot_line = self._rotate_back(top_line,bot_line, rotation_matrix)
+        top_line, bot_line = utils.fpoints2ipoints(top_line, bot_line)
 
         return ResultClass(top_line,bot_line,has_lens)

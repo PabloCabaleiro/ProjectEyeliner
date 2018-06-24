@@ -14,15 +14,20 @@ class ValidateData(object):
 
         for i in range(0,len(images_list)):
 
-            if not os.path.isfile(utils.VAL_PATH + names_list[i].split("\\")[1].split(".")[0] + '.txt'):
-                self._create_contour_validation(images_list[i],names_list[i])
+            eval_result = utils.load_validation(names_list[i])
+
+            #if not os.path.isfile(utils.VAL_PATH + names_list[i].split("\\")[1].split(".")[0] + '.txt'):
+                #self._create_contour_validation(images_list[i],names_list[i])
+
+            if eval_result["has_lens"]:
+                self._create_contour_validation(images_list[i], names_list[i])
 
     def load_image(self, name, image, aoi_params):
 
         image = image * 1
 
         font = cv2.FONT_HERSHEY_PLAIN
-        if aoi_params["line"] == "S":
+        if aoi_params["line"] == "s":
             cv2.putText(image, 'Press space to change line', (10, 20), font, 1, (255, 255, 255), 2, cv2.LINE_AA)
         else:
             cv2.putText(image, 'Press space to save image', (10, 20), font, 1, (255, 255, 255), 2, cv2.LINE_AA)
@@ -48,6 +53,7 @@ class ValidateData(object):
         cv2.setMouseCallback(name, self._on_mouse_clicked_aoi, aoi_params)
         stop = False
         no_lens = False
+        type = ""
 
         while not stop:
 
@@ -58,7 +64,7 @@ class ValidateData(object):
                 aoi_params["line"] = 'i'
                 list(aoi_params["points_s"])
 
-            elif k == ord('\n') or k == ord(' '):
+            elif (k == ord('\n') or k == ord(' ')) and type != "":
                 stop = True
 
             elif k == ord("d") or k == ord("D"):
@@ -66,25 +72,42 @@ class ValidateData(object):
 
             elif k == ord("2"):
                 no_lens = True
+
+            elif k == ord("e"):
+                type = "e"
+
+            elif k == ord("l"):
+                type = "l"
+
+            elif k == ord("c"):
+                type = "c"
+
+            elif k == ord("n"):
                 stop = True
 
         cv2.destroyWindow(name)
         s_list = list(aoi_params["points_s"])
         i_list = list(aoi_params["points_i"])
 
-        if not no_lens:
-            output  = ""
-            for x,y in s_list:
-                output += str(x) + "\t" + str(y) + "\n"
-            output += "MARK\n"
-            for x,y in i_list:
-                output += str(x) + "\t" + str(y) + "\n"
-        else:
-            output = "NO_LENS"
+        output  = ""
+        for x,y in s_list:
+            output += str(x) + "\t" + str(y) + "\n"
+        output += "MARK\n"
+        for x,y in i_list:
+            output += str(x) + "\t" + str(y) + "\n"
 
-        with open(self.path + name.split("\\")[1].split(".")[0] + '.txt', 'w') as file:
-            file.write(output)
-            file.close()
+        if no_lens:
+            output += "NO_LENS" + "\n"
+
+        if type == "c" or type == "l" or type == "e":
+            output = output + type + "\n"
+            with open(self.path + name.split("\\")[1].split(".")[0] + '.txt', 'a') as file:
+                file.write(output)
+                file.close()
+        else:
+            with open(self.path + name.split("\\")[1].split(".")[0] + '.txt', 'w') as file:
+                file.write(output)
+                file.close()
 
     def _on_mouse_clicked_aoi(self, event, x, y, flags, aoi_params):
 
@@ -102,7 +125,7 @@ class ValidateData(object):
 
     def create_validation(self):
 
-        image_list, names_list = utils._read_images()
+        image_list, filter_list, names_list = utils._read_images()
         self._set_validation_points(image_list,names_list)
 
 

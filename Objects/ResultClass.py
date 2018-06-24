@@ -50,15 +50,13 @@ class ResultClass(object):
         self.cornea_start_line = int(round(cornea_line[0][0]))
         self.cornea_end_line = int(round(cornea_line[-1][0]))
 
-    def show(self, image):
-        if self.has_lens:
-            plt.figure("Result")
-            top = list(zip(*self.lens))
-            plt.plot(top[0],top[1])
-            bot = list(zip(*self.cornea))
-            plt.plot(bot[0],bot[1])
-        else:
-            plt.figure("Result has no lens")
+    def show(self, image, name = "Result"):
+        plt.figure(name)
+        top = list(zip(*self.lens))
+        plt.plot(top[0],top[1])
+        bot = list(zip(*self.cornea))
+        plt.plot(bot[0],bot[1])
+
         plt.imshow(image)
         plt.show()
 

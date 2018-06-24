@@ -12,10 +12,11 @@ class ImageSegmentationClass(object):
             self._complete= True
             self.layers[-1].is_retina = True
 
-        else:
+        elif len(diff) > 1:
 
             self.layers = []
-            index = diff.index(max(diff))
+
+            index = diff.index(max(diff[1:]))
 
             for i in range(0, index +1):
                 if i == index:
@@ -45,8 +46,10 @@ class ImageSegmentationClass(object):
             return self.layers[-1].get_pos("bot", pos)
 
     def get_result(self):
-        if len(self.layers) == 3:
+        if self.layers is not None and len(self.layers) == 3:
             return self.layers[-2].bot_line, self.layers[-1].top_line, True
+        elif self.layers is not None and len(self.layers) == 2:
+            return self.layers[-2].bot_line, self.layers[-1].top_line, False
         else:
             return None, None, False
 

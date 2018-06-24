@@ -197,6 +197,6 @@ class PreproccessClass(object):
 
 
         #filter_img = self._pre_median_bilateral(enhanced_image, bilateral_values=(self.parameters.bilateral_diameter, self.parameters.sigma_color, self.parameters.sigma_space),
-                                                #median_va  lue=self.parameters.median_value)
+                                                #median_value=self.parameters.median_value)
 
         return rotate_img, enhanced_image, rotation_matrix

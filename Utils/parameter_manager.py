@@ -2,16 +2,15 @@ from hashlib import blake2b
 
 ##############################################PROCCES CLASS#############################################################
 #Detección de ROI
-CORNEA_TH_DEFAULT = 30               # Diferencia de intensidad umbral para ser cornea entre los vectores de SAMPLE_SIZE
 MAX_DIST_TO_ROI_DEFAULT = 20         # Distancia máxima a la línea marcada como ROI para ser punto de inicio
 #Aproximación al borde
-LOCALIZATION_TOP_WINDOW_DEFAULT = 20 # Ventana de movimiento entre píxeles colindantes de un borde hacia arriba
-LOCALIZATION_BOT_WINDOW_DEFAULT = 20 # Ventana de movimiento entre píxeles colindantes de un borde hacia abajo
+LOCALIZATION_TOP_WINDOW_DEFAULT = 7 # Ventana de movimiento entre píxeles colindantes de un borde hacia arriba
+LOCALIZATION_BOT_WINDOW_DEFAULT = 7 # Ventana de movimiento entre píxeles colindantes de un borde hacia abajo
 #Detección de capas
 MIN_DIST_BETWEEN_ROI_RATE = 0.05          # Distancia mínima entre capas
-ROI_TH_DEFAULT = 3000                # Umbral de diferencia entre filas para ser la aproximación de una capa
+ROI_TH_DEFAULT = 3200                # Umbral de diferencia entre filas para ser la aproximación de una capa
 EDGE_WIDTH_DEFAULT = 3              # Tamaño aproximado del borde completo desde el límite superior al inferior\
-SAMPLE_WINDOW_DEFAULT = 20           # Tamaño ventana para el estudio de las intensidades anteriores y posteriores a un borde
+SAMPLE_WINDOW_DEFAULT = 30           # Tamaño ventana para el estudio de las intensidades anteriores y posteriores a un borde
 N_ROI_DEFAULT = 3
 #Snake
 BETA_DEFAULT = 20                    # Snake length shape parameter. Higher values makes snake contract faster.
@@ -20,26 +19,25 @@ W_LINE_DEFAULT = 0                   # Controls attraction to brightness. Use ne
 W_EDGE_DEFAULT = 1                   # Controls attraction to edges. Use negative values to repel snake from edges
 GAMMA_DEFAULT = 0.1                  # Explicit time stepping parameter.
 #Canny
-CANNY_SUP_DEFAULT = 110
-CANNY_INF_DEFAULT = 80
-CANNY_KERNER_DEFAULT = 5
+CANNY_SUP_DEFAULT = 120
+CANNY_INF_DEFAULT = 90
+CANNY_KERNER_DEFAULT = 3
 
 #############################################PREPROCCES CLASS###########################################################
-MEDIAN_VALUE_DEFAULT = 3
-BILATERAL_SIGMA_COLOR_DEFAULT = 170 # Filter sigma in the color space. A larger value of the parameter means that farther
+MEDIAN_VALUE_DEFAULT = 7
+BILATERAL_SIGMA_COLOR_DEFAULT = 325 # Filter sigma in the color space. A larger value of the parameter means that farther
 # colors within the pixel neighborhood will be mixed together, resulting in larger areas of semi-equal color.
-BILATERAL_SIGMA_SPACE_DEFAULT = 170 # Filter sigma in the coordinate space. A larger value of the parameter means that farther
+BILATERAL_SIGMA_SPACE_DEFAULT = 325 # Filter sigma in the coordinate space. A larger value of the parameter means that farther
 # pixels will influence each other as long as their colors are close enough (see sigmaColor ).
-BILATERAL_DIAMETER_DEFAULT = 11      # Diameter of each pixel neighborhood that is used during filtering.
+BILATERAL_DIAMETER_DEFAULT = 7       # Diameter of each pixel neighborhood that is used during filtering.
 N_BINS_DEFAULT = 30                  # Bins of orientations to the hog function
-TOP_HAT_KERNEL_SIZE = 15
+TOP_HAT_KERNEL_SIZE = 21
 
 class ParameterManagerClass(object):
 
     id = None
     min_dist_between_roi = MIN_DIST_BETWEEN_ROI_RATE
     roi_th = ROI_TH_DEFAULT
-    cornea_th = CORNEA_TH_DEFAULT
     max_dist_to_roi = MAX_DIST_TO_ROI_DEFAULT
     edge_width = EDGE_WIDTH_DEFAULT
     sample_window = SAMPLE_WINDOW_DEFAULT
@@ -123,11 +121,10 @@ class ParameterManagerClass(object):
     def get_config(self):
         return {
             "ID": self.id,
-            "CORNEA_TH": self.cornea_th,
+            "ROI_TH": self.roi_th,
             "MEDIAN_VALUE": self.median_value,
-            "SIGMA_COLOR": self.sigma_color,
-            "SIGMA_SPACE": self.sigma_space,
-            "BILATERAL_DIAMETER": self.bilateral_diameter,
+            "MAX_TOP": self.localization_top_window,
+            "MAX_BOT": self.localization_bot_window,
             "ALPHA": self.alpha,
             "BETA": self.beta,
             "W_LINE": self.w_line,
@@ -138,3 +135,6 @@ class ParameterManagerClass(object):
             "CANNY_KERNEL": self.canny_kernel,
             "TOP_HAT_KERNEL": self.top_hat_kernel,
         }
+
+    def get_id(self):
+        return self.id

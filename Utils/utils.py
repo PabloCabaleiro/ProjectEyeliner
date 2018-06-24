@@ -9,18 +9,22 @@ IMG_PATH = "imgenestfm\\*"
 FILTER_PATH = "imgenesjn\\*"
 PROBLEMS_PATH = "problemas\\*"
 CONFIG_PATH = "images_config\\*"
+CONFIGJN_PATH = "imagesjn_config\\*"
+
+TEST_PATH = "images_test\\*"
+TESTJN_PATH = "images_testjn\\*"
 
 
-def _read_images():
+def _read_images(path=IMG_PATH, path_filter = FILTER_PATH):
     image_list = []
     names_list = []
     filter_list = []
-    for filename in glob.glob(IMG_PATH):  # assuming gif
+    for filename in glob.glob(path):  # assuming gif
         im = cv2.imread(filename)
         image_list.append(im)
         names_list.append(filename)
 
-    for filename in glob.glob(FILTER_PATH):  # assuming gif
+    for filename in glob.glob(path_filter):  # assuming gif
         im = cv2.imread(filename)
         filter_list.append(im)
 
@@ -36,17 +40,27 @@ def load_validation(name):
     sup_l = []
     inf_l = []
 
+    lens = True
+    print(name)
+
     for line in open(VAL_PATH + name.split("\\")[1].split(".")[0] + '.txt', 'r'):
-        if line.startswith("NO_LENS"):
-            return {"lens": [], "cornea": [], "has_lens": True}
-        if line.startswith("MARK"):
+
+        if line.startswith("NO_LENS") or line.startswith(" NO_LENS"):
+            lens = False
+        elif line.startswith("MARK"):
             edge = "i"
-        elif edge == "s":
+        elif line.startswith("c"):
+            type = "c"
+        elif line.startswith("l"):
+            type = "l"
+        elif line.startswith("e"):
+            type = "e"
+        elif not line.startswith("\n") and edge == "s":
             sup_l.append((int(line.split("\t")[0]),int(line.split("\t")[1])))
-        else:
+        elif not line.startswith("\n"):
             inf_l.append((int(line.split("\t")[0]), int(line.split("\t")[1])))
 
-    return {"lens": sup_l, "cornea": inf_l, "has_lens": False}
+    return {"lens": sup_l, "cornea": inf_l, "has_lens": lens, "type": type}
 
 def show_validations(list_names, list_images):
     for i in range(0,len(list_names)):
@@ -109,29 +123,33 @@ def show_metrics(self, image, name):
     aoi_params = dict(top2bot_line = self.top2bot["line"], top2bot_points = self.top2bot["points"],  top2bot_start = self.top2bot["start"], top2bot_end = self.top2bot["end"], top2bot_dist = self.top2bot["distances"],
                       bot2top_line = self.bot2top["line"], bot2top_points = self.bot2top["points"], bot2top_start = self.bot2top["start"], bot2top_end = self.bot2top["end"], bot2top_dist = self.bot2top["distances"],
                       image=image, name = name)
+    try:
+        for i in range(1, len(self.top2bot["distances"])):
+            point = self.top2bot["line"][i]
+            image[point[1]-2, point[0], :] = top2bot_colors[i]
+            image[point[1]-1, point[0], :] = top2bot_colors[i]
+            image[point[1],point[0],:] = top2bot_colors[i]
+            image[point[1]+1, point[0], :] = top2bot_colors[i]
+            image[point[1]+2, point[0], :] = top2bot_colors[i]
 
-    for i in range(1, len(self.top2bot["distances"])):
-        point = self.top2bot["line"][i]
-        image[point[1]-2, point[0], :] = top2bot_colors[i]
-        image[point[1]-1, point[0], :] = top2bot_colors[i]
-        image[point[1],point[0],:] = top2bot_colors[i]
-        image[point[1]+1, point[0], :] = top2bot_colors[i]
-        image[point[1]+2, point[0], :] = top2bot_colors[i]
-
-    for i in range(1, len(self.bot2top["distances"])):
-        point = self.bot2top["line"][i]
-        image[point[1]-2, point[0], :] = bot2top_colors[i]
-        image[point[1]-1, point[0], :] = bot2top_colors[i]
-        image[point[1],point[0],:] = bot2top_colors[i]
-        image[point[1]+1, point[0], :] = bot2top_colors[i]
-        image[point[1]+2, point[0], :] = bot2top_colors[i]
+        for i in range(1, len(self.bot2top["distances"])):
+            point = self.bot2top["line"][i]
+            image[point[1]-2, point[0], :] = bot2top_colors[i]
+            image[point[1]-1, point[0], :] = bot2top_colors[i]
+            image[point[1],point[0],:] = bot2top_colors[i]
+            image[point[1]+1, point[0], :] = bot2top_colors[i]
+            image[point[1]+2, point[0], :] = bot2top_colors[i]
 
 
-    cv2.namedWindow(name)
-    cv2.setMouseCallback(name, _on_mouse_clicked_aoi, aoi_params)
-    cv2.imshow(name, image)
-    cv2.waitKey()
-    cv2.destroyAllWindows()
+        cv2.namedWindow(name)
+        cv2.moveWindow(name, 40,30)
+        cv2.setMouseCallback(name, _on_mouse_clicked_aoi, aoi_params)
+        cv2.imshow(name, image)
+        cv2.waitKey()
+        cv2.destroyAllWindows()
+
+    except:
+        pass
 
 
 
