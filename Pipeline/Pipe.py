@@ -49,6 +49,7 @@ class PipeClass():
         if self.verbose:
             print("\tPipeline:")
 
+        ####################################### PREPROCESS PHASE ##################################################
         rotated_img, enhanced_image, rotation_matrix = preprocces.pipeline(og_image, filter_image)
 
         preprocess_time = time.time()
@@ -56,6 +57,7 @@ class PipeClass():
             print("\t\tTiempo preprocesado: " + str(preprocess_time - start_time) + "s")
         tiempo["preprocesado"] = preprocess_time - start_time
 
+        # PROCESS PHASE
         result = procces.pipeline(rotated_img, enhanced_image, rotation_matrix)
 
         process_time = time.time()
@@ -63,6 +65,7 @@ class PipeClass():
             print("\t\tTiempo procesado: " + str(process_time - preprocess_time) + "s")
         tiempo["localizacion"] = process_time - preprocess_time
 
+        ######################################## SEGMENTATION PHASE ##################################################
         if result.has_lens:
             try:
                 result_snake = snake.run(og_image, result.lens, result.cornea)

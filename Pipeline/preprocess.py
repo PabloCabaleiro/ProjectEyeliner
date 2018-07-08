@@ -1,6 +1,7 @@
 import cv2
 import numpy as np
 import matplotlib.pyplot as plt
+import Utils.utils
 
 RECTANGLE_POS = dict(big= [(20, 650), 180],  medium  = [(20, 600), 160], small = [(20, 470), 140])
 
@@ -20,6 +21,11 @@ class PreproccessClass(object):
         self.parameters = parameters
 
     def _rotate_bound(self, filter_image, og_img, angle):
+        ############################################################################################
+        # Rotates the filter images
+        ############################################################################################
+
+        #https://www.pyimagesearch.com/2017/01/02/rotate-images-correctly-with-opencv-and-python/
         # grab the dimensions of the image and then determine the
         # center
         (h, w) = filter_image.shape[:2]
@@ -44,6 +50,9 @@ class PreproccessClass(object):
         return cv2.warpAffine(filter_image, M, (nW, nH)),cv2.warpAffine(og_img, M, (nW, nH)), M
 
     def _get_image_type(self, shape):
+        ############################################################################################
+        # Detects the size of the image to remove the UI
+        ############################################################################################
         if ((shape[0], shape[1]) == BIG_SHAPE):
             return BIG_TYPE
         elif ((shape[0], shape[1]) == MEDIUM_SHAPE):
@@ -54,6 +63,9 @@ class PreproccessClass(object):
             return -1
 
     def _pre_get_masks(self, img, showMask=False):
+        ############################################################################################
+        # Gets the mask of the non interest region.
+        ############################################################################################
         filter_img = cv2.GaussianBlur(img, (3, 3), 0)
         _, mask = cv2.threshold(filter_img, 5, 255, cv2.THRESH_BINARY)
         mask = cv2.cvtColor(mask, cv2.COLOR_BGR2GRAY)
@@ -67,6 +79,9 @@ class PreproccessClass(object):
         return dilated_img
 
     def _remove_UI(self, img):
+        ############################################################################################
+        # Removes the ui of the image
+        ############################################################################################
         type = self._get_image_type(np.shape(img))
         if type != -1:
             initial_pos = RECTANGLE_POS[type][0]
@@ -101,7 +116,7 @@ class PreproccessClass(object):
             for j in range(0, int(np.shape(mag)[1] / cell_size[0])):
                 # Calculamos ángulos y mangitudes medias para cada celda
                 mean_mag = np.mean(mag[i * cell_size[0]:cell_size[0] * (i + 1), j * cell_size[1]:cell_size[1] * (
-                j + 1)])  # Uso la media por lo que sigue sin ser robusto a ruido xd
+                    j + 1)])  # Uso la media por lo que sigue sin ser robusto a ruido xd
                 mean_angle = np.mean(
                     angle[i * cell_size[0]:cell_size[0] * (i + 1), j * cell_size[1]:cell_size[1] * (j + 1)])
 
@@ -186,17 +201,26 @@ class PreproccessClass(object):
         return aux_img
 
 
-
-
     def pipeline(self, img, filter_img):
 
         filter_img = self._remove_UI(filter_img)
-        enhanced_image = self._pre_enhance_top_hat(img)
+        enhanced_image = self._pre_enhance_top_hat(filter_img)
         rotate_img, enhanced_image, rotation_matrix = self._pre_rotate(enhanced_image, filter_img, nbins=self.parameters.n_bins, showRotation=False)
 
 
 
         #filter_img = self._pre_median_bilateral(enhanced_image, bilateral_values=(self.parameters.bilateral_diameter, self.parameters.sigma_color, self.parameters.sigma_space),
-                                                #median_value=self.parameters.median_value)
+        #median_value=self.parameters.median_value)
 
         return rotate_img, enhanced_image, rotation_matrix
+
+    def show(self, image, image2=None, name = None):
+
+        plt.figure("Rotated image segmentation")
+
+        plt.subplot(121)
+        plt.imshow(image)
+        plt.subplot(122)
+        plt.imshow(image2)
+
+        plt.show()
