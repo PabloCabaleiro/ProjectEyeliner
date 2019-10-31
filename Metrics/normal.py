@@ -4,6 +4,7 @@ class NormalMetrics(object):
 
     bot2top = None
     top2bot = None
+    WINDOW = 5
 
     def __init__(self, result):
 
@@ -17,23 +18,23 @@ class NormalMetrics(object):
         distances = []
         points = []
 
-        for i in range(result.lens_start_line, result.lens_end_line +1):
+        for i in range(result.lens_start_line, result.lens_end_line):
 
             # Set as negative beacause top of image is 0 so the order in y axis changes
-            if i == result.lens_start_line:
+            if i < result.lens_start_line + self.WINDOW:
                 try:
-                    dy = (result.get_lens_value(i+1) - result.get_lens_value(i)) * -1
+                    dy = (result.get_lens_value(i+self.WINDOW) - result.get_lens_value(result.lens_start_line)) * -1
                 except:
                     continue
-            elif i == result.lens_end_line-1:
+            elif i > result.lens_end_line-5:
                 try:
-                    dy = (result.get_lens_value(i) - result.get_lens_value(i-1)) * -1
+                    dy = (result.get_lens_value(result.cornea_end_line) - result.get_lens_value(i-self.WINDOW)) * -1
                 except:
                     continue
             else:
                 # We want to set dx = 1 and we know its allways gonna be 2. So div dy for 2 to normalize.
                 try:
-                    dy = (result.get_lens_value(i + 1) - result.get_lens_value(i - 1)) / -2
+                    dy = (result.get_lens_value(i + self.WINDOW) - result.get_lens_value(i - self.WINDOW)) / -2
                 except:
                     continue
 
@@ -84,23 +85,23 @@ class NormalMetrics(object):
         distances = []
         points = []
 
-        for i in range(result.cornea_start_line, result.cornea_end_line+1):
+        for i in range(result.cornea_start_line, result.cornea_end_line):
 
             # Set as negative beacause top of image is 0 so the order in y axis changes
-            if i == result.cornea_start_line:
+            if i < result.cornea_start_line + self.WINDOW:
                 try:
-                    dy = (result.get_cornea_value(i + 1) - result.get_cornea_value(i))
+                    dy = (result.get_cornea_value(i + self.WINDOW) - result.get_cornea_value(result.cornea_start_line))
                 except:
                     continue
-            elif i == result.cornea_end_line-1:
+            elif i > result.cornea_end_line - self.WINDOW:
                 try:
-                    dy = (result.get_cornea_value(i) - result.get_cornea_value(i - 1))
+                    dy = (result.get_cornea_value(result.cornea_end_line) - result.get_cornea_value(i - self.WINDOW))
                 except:
                     continue
             else:
                 # We want to set dx = 1 and we know its allways gonna be 2. So div dy for 2 to normalize.
                 try:
-                    dy = (result.get_cornea_value(i + 1) - result.get_cornea_value(i - 1)) / 2
+                    dy = (result.get_cornea_value(i + self.WINDOW) - result.get_cornea_value(i - self.WINDOW)) / 2
                 except:
                     continue
 

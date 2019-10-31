@@ -73,7 +73,7 @@ class PipeClass():
                 if self.verbose:
                     print("\t\tTiempo snake: " + str(snake_time - process_time) + "s")
                     print("\t\tTiempo total: " + str(snake_time - start_time) + "s")
-                    self.show_results(og_image,result,result_snake)
+                    #self.show_results(og_image,result,result_snake)
                 tiempo["snake"] = snake_time - process_time
                 tiempo["global"] = snake_time - start_time
 

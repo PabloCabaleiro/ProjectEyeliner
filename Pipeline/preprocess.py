@@ -205,18 +205,21 @@ class PreproccessClass(object):
 
         filter_img = self._remove_UI(filter_img)
         enhanced_image = self._pre_enhance_top_hat(filter_img)
+        #self.show(filter_img,enhanced_image)
         rotate_img, enhanced_image, rotation_matrix = self._pre_rotate(enhanced_image, filter_img, nbins=self.parameters.n_bins, showRotation=False)
 
 
 
         #filter_img = self._pre_median_bilateral(enhanced_image, bilateral_values=(self.parameters.bilateral_diameter, self.parameters.sigma_color, self.parameters.sigma_space),
         #median_value=self.parameters.median_value)
-
+        #self.show(filter_img, name="filter")
         return rotate_img, enhanced_image, rotation_matrix
 
     def show(self, image, image2=None, name = None):
-
-        plt.figure("Rotated image segmentation")
+        if name is None:
+            plt.figure("Rotated image segmentation")
+        else:
+            plt.figure(name)
 
         plt.subplot(121)
         plt.imshow(image)

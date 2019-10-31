@@ -1,0 +1,3 @@
+#Running with Python 3.6.2
+#Running the demo:
+python main.py

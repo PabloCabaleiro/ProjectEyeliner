@@ -427,7 +427,7 @@ class ProccesClass(object):
         edge_img = cv2.bitwise_or(edge_img, edge_img, mask=self.mask)
 
         # We try to aproximate the regions of interest.
-        segmentation = self._localization(edge_img, enhanced_img, showImgs=True)
+        segmentation = self._localization(edge_img, enhanced_img, showImgs=False)
 
         top_line, bot_line, has_lens = segmentation.get_result()
 

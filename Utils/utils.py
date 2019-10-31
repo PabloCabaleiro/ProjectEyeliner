@@ -8,14 +8,14 @@ VAL_PATH = "validation-data\\"
 IMG_PATH = "imgenestfm\\*"
 FILTER_PATH = "imgenesjn\\*"
 PROBLEMS_PATH = "problemas\\*"
-CONFIG_PATH = "images_config\\*"
-CONFIGJN_PATH = "imagesjn_config\\*"
+CONFIG_PATH = "original_images\\*"
+CONFIGJN_PATH = "filtered_images\\*"
 
 TEST_PATH = "images_test\\*"
 TESTJN_PATH = "images_testjn\\*"
 
 
-def _read_images(path=IMG_PATH, path_filter = FILTER_PATH):
+def _read_images(path=CONFIG_PATH, path_filter = CONFIGJN_PATH):
     image_list = []
     names_list = []
     filter_list = []
