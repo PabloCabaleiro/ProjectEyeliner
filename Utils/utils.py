@@ -1,18 +1,17 @@
 import glob
 import cv2
 import math
-import matplotlib.pyplot as plt
+import os
 import numpy as np
 
-VAL_PATH = "validation-data\\"
-IMG_PATH = "imgenestfm\\*"
-FILTER_PATH = "imgenesjn\\*"
-PROBLEMS_PATH = "problemas\\*"
-CONFIG_PATH = "original_images\\*"
-CONFIGJN_PATH = "filtered_images\\*"
-
-TEST_PATH = "images_test\\*"
-TESTJN_PATH = "images_testjn\\*"
+VAL_PATH = os.path.join("validation-data")
+IMG_PATH = os.path.join("imgenestfm","*")
+FILTER_PATH = os.path.join("imgenesjn","*")
+PROBLEMS_PATH = os.path.join("problemas","*")
+CONFIG_PATH = os.path.join("original_images","*")
+CONFIGJN_PATH = os.path.join("filtered_images","*")
+TEST_PATH = os.path.join("images_test","*")
+TESTJN_PATH = os.path.join("images_testjn","*")
 
 
 def _read_images(path=CONFIG_PATH, path_filter = CONFIGJN_PATH):
