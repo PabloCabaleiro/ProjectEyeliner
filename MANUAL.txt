@@ -1,12 +1,7 @@
 # Running with Python 3.6.2
 
-# Library dependencies
-# matplotlib    (2.0.2)
-# opencv-python (4.1.1.26)
-# scipy         (0.19.1)
-# scikit-image  (0.13.0)
-# numpy         (1.13.1)
-# openssl       (1.0.2l)
+# Installing library dependencies
+pip3 install -r requirements.txt
 
 # Running the demo:
-python main.py
+python3 main.py
